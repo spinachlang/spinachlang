@@ -11,32 +11,25 @@ declaration: qubit_declaration
            | list_declaration
            | instruction_declaration
 
-qubit_declaration: qubit_name ":" number
-list_declaration: list_name ":" list
-instruction_declaration: instruction_name ":" gate_pip
+qubit_declaration: name ":" number
+list_declaration: name ":" list
+instruction_declaration: name ":" gate_pip
 
 // Gate pipelines like A | B | my_instruction
-gate_pip: gate ("|" (gate | instruction_name))*  // you may want to restrict what instruction_name means
+gate_pip: gate ("|" (gate | name))*
 
 // Allow: GATE, GATE(), GATE(arg, ...) 
-gate: gate_name ["(" [args] ")"] -> gate_call
-args: (name | number) ("," (name | number))*  // arg list: a, b, 3
+gate: upper_name ["(" [args] ")"] -> gate_call
+args: (name | number) ("," (name | number))*
 
 // Actions: q1 -> gate or q1 -> my_instruction
-action: qubit_name "->" (gate_pip_name | gate_pip)
+action: name "->" (name | gate_pip)
 
 // List of names
-list: "[" name ("," name)* "]"
+list: "[" [name ("," name)*] "]"
 
 // Identifiers
-instruction_name: name
-list_name: name
-qubit_name: name
-gate_pip_name: name
-gate_name: upper_name
-
-// Identifiers
-name: /[a-z][a-za-z_]*/
+name: /[a-z][a-zA-Z0-9_]*/
 upper_name: /[A-Z]+/
 number: /\d+/
 
