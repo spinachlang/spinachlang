@@ -26,7 +26,7 @@ args: (name | number) ("," (name | number))*
 action: name "->" (name | gate_pip)
 
 // List of names
-list: "[" [name ("," name)*] "]"
+list: "[" name ("," name)* "]"
 
 // Identifiers
 name: /[a-z][a-zA-Z0-9_]*/
