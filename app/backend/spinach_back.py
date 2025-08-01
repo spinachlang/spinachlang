@@ -15,10 +15,24 @@ class SpinachBack:
             (decl.number for decl in ast_nodes if isinstance(decl, QubitDeclaration)),
             default=0,
         )
+
     @staticmethod
-    def __handle_action(action: Action, c: Circuit, qubits: Dict, lists: Dict, instructions: Dict):
-
-
+    def __handle_action(
+        action: Action, c: Circuit, qubits: Dict, lists: Dict, instructions: Dict
+    ):  
+        if isinstance(action.target, list)
+            targets = action.target
+        else:
+            targets = [action.target]
+        for target in targets:
+            for _ in range(action.count or 0):
+                if isinstance(action.instruction, str):
+                    pipline = instructions[action.instruction]
+                else:
+                    pipline = action.instruction
+                SpinachBack.__handle_pipeline(
+                    pipline, c, qubits[target], instructions
+                )
 
     @staticmethod
     def compile_into_circuit(ast_nodes):
@@ -34,5 +48,7 @@ class SpinachBack:
             elif isinstance(node, InstructionDeclaration):
                 instruction_dict[node.name] = node.pipline
             elif isinstance(node, Action):
-                SpinachBack.__handle_action(node, c, qubit_dict, list_dict, instruction_dict)
+                SpinachBack.__handle_action(
+                    node, c, qubit_dict, list_dict, instruction_dict
+                )
         return c

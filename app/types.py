@@ -27,6 +27,6 @@ class InstructionDeclaration(BaseModel):
 
 
 class Action(BaseModel):
-    target: str
-    index: Optional[int] = None
-    operation: Union[GatePipeline, str]
+    target: Union[str, int, list]
+    count: Optional[int] = None
+    instruction: Union[GatePipeline, str]

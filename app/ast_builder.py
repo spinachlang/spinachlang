@@ -60,13 +60,13 @@ class AstBuilder(Transformer):
         return GatePipeline(parts=parts)
 
     @v_args(inline=True)
-    def action(self, name, arrow, number_opt, operation):
+    def action(self, target, _, number_opt, operation):
         if isinstance(number_opt, int):
             index = number_opt
         else:
             operation = number_opt
             index = None
-        return Action(target=name, index=index, operation=operation)
+        return Action(target=target, index=index, operation=operation)
 
     def statement(self, items):
         return items[0]
