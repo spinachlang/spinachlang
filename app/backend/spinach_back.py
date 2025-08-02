@@ -1,7 +1,3 @@
-from ast import Dict
-from typing import List, Optional, Union
-from pydantic import BaseModel, Field, validator, root_validator
-from lark import Lark, Transformer, v_args, Tree, Tokenclass
 from app.types import *
 from app.types import QubitDeclaration
 from app.types import Action
@@ -17,38 +13,94 @@ class SpinachBack:
         )
 
     @staticmethod
-    def __handle_action(
-        action: Action, c: Circuit, qubits: Dict, lists: Dict, instructions: Dict
-    ):  
-        if isinstance(action.target, list)
+    def __apply_gate(target: int, gate_call: GateCall, c: Circuit):
+        # Sdg and Tdg are not supported by pytket we will need in the futur to do something like: circ.add_gate(OpType.Sdg, [], [q])
+        # Measuer all and barrier will be their own instructions since it affects all the qibits
+        # There is a way to add gates with add_gate
+        _gate_dispatch = {
+            "X": c.X,
+            "Y": c.Y,
+            "Z": c.Z,
+            "H": c.H,
+            "S": c.S,
+            "T": c.T,
+            "RX": c.Rx,
+            "RY": c.Ry,
+            "RZ": c.Rz,
+            "CNOT": c.CX,
+            "CX": c.CX,
+            "CY": c.CY,
+            "CZ": c.CZ,
+            "CU1": c.CU1,
+            "SWAP": c.SWAP,
+            "TOFFOLI": c.CCX,
+            "CCX": c.CCX,
+            "M": c.MEASURE,
+            "MEASURE": c.MEASURE,
+        }
+        fn = _gate_dispatch.get(gate_call.name)
+        if fn is None:
+            raise ValueError(f"Unknown gate {gate_call.name!r}")
+
+        try:
+            if gate_call.name in ["M", "MEASURE"]:
+                fn(target, *(gate_call.args if gate_call.args is not None else ()))
+
+            else:
+                fn(*((gate_call.args if gate_call.args is not None else ()), target))
+
+        except TypeError as e:
+            raise TypeError(
+                f"Error calling gate {gate_call.name!r} with args {gate_call.args}: {e}"
+            ) from e
+
+    @staticmethod
+    def __handle_pipeline(target: int, pipeline: GatePipeline, c: Circuit, index: dict):
+        for gate in pipeline.parts:
+            gate_call = index[gate] if isinstance(gate, str) else gate
+            if not isinstance(gate_call, GateCall):
+                raise TypeError(
+                    f"gate_call is not a GateCall (got {type(gate).__name__})"
+                )
+            SpinachBack.__apply_gate(target, gate_call, c)
+
+    @staticmethod
+    def __handle_action(action: Action, c: Circuit, index: dict):
+        if isinstance(action.target, list):
             targets = action.target
         else:
             targets = [action.target]
         for target in targets:
             for _ in range(action.count or 0):
-                if isinstance(action.instruction, str):
-                    pipline = instructions[action.instruction]
-                else:
-                    pipline = action.instruction
-                SpinachBack.__handle_pipeline(
-                    pipline, c, qubits[target], instructions
+                pipeline = (
+                    index[action.instruction]
+                    if isinstance(action.instruction, str)
+                    else action.instruction
                 )
+                if not isinstance(pipeline, GatePipeline):
+                    raise TypeError(
+                        f"pipeline is not a GatePipeline (got {type(pipeline).__name__})"
+                    )
+
+                number_target = index[target] if isinstance(target, str) else target
+                if not isinstance(target, int):
+                    raise TypeError(
+                        f"target is not a number (got {type(target).__name__})"
+                    )
+                SpinachBack.__handle_pipeline(number_target, pipeline, c, index)
 
     @staticmethod
     def compile_into_circuit(ast_nodes):
         c = Circuit(SpinachBack.__get_max_qubit_number(ast_nodes))
-        qubit_dict = dict()
-        list_dict = dict()
-        instruction_dict = dict()
+        index = dict()
         for node in ast_nodes:
-            if isinstance(node, QubitDeclaration):
-                qubit_dict[node.name] = node.number
-            elif isinstance(node, ListDeclaration):
-                list_dict[node.name] = node.items
-            elif isinstance(node, InstructionDeclaration):
-                instruction_dict[node.name] = node.pipline
-            elif isinstance(node, Action):
-                SpinachBack.__handle_action(
-                    node, c, qubit_dict, list_dict, instruction_dict
-                )
+            match node:
+                case QubitDeclaration(name=name, number=number):
+                    index[name] = number
+                case ListDeclaration(name=name, items=items):
+                    index[name] = items
+                case InstructionDeclaration(name=name, pipeline=pipeline):
+                    index[name] = pipeline
+                case Action():
+                    SpinachBack.__handle_action(node, c, index)
         return c
