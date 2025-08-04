@@ -1,7 +1,7 @@
-from app.types import *
+from app.spinach_types import SpinachTypes
 from app.types import QubitDeclaration
 from app.types import Action
-from pytket import Circuit,
+from pytket import Circuit
 from pytket.qasm import circuit_to_qasm_str
 from pytket.extensions.qiskit import tk_to_qiskit
 from pytket.extensions.cirq import tk_to_cirq
@@ -12,12 +12,16 @@ class SpinachBack:
     @staticmethod
     def __get_max_qubit_number(ast_nodes):
         return max(
-            (decl.number for decl in ast_nodes if isinstance(decl, QubitDeclaration)),
+            (
+                decl.number
+                for decl in ast_nodes
+                if isinstance(decl, SpinachTypes.QubitDeclaration)
+            ),
             default=0,
         )
 
     @staticmethod
-    def __apply_gate(target: int, gate_call: GateCall, c: Circuit):
+    def __apply_gate(target: int, gate_call: SpinachTypes.GateCall, c: Circuit):
         # Sdg and Tdg are not supported by pytket we will need in the futur to do something like: circ.add_gate(OpType.Sdg, [], [q])
         # Measuer all and barrier will be their own instructions since it affects all the qibits
         # There is a way to add gates with add_gate
@@ -59,10 +63,12 @@ class SpinachBack:
             ) from e
 
     @staticmethod
-    def __handle_pipeline(target: int, pipeline: GatePipeline, c: Circuit, index: dict):
+    def __handle_pipeline(
+        target: int, pipeline: SpinachTypes.GatePipeline, c: Circuit, index: dict
+    ):
         for gate in pipeline.parts:
             gate_call = index[gate] if isinstance(gate, str) else gate
-            if not isinstance(gate_call, GateCall):
+            if not isinstance(gate_call, SpinachTypes.GateCall):
                 raise TypeError(
                     f"gate_call is not a GateCall (got {type(gate).__name__})"
                 )
@@ -81,7 +87,7 @@ class SpinachBack:
                     if isinstance(action.instruction, str)
                     else action.instruction
                 )
-                if not isinstance(pipeline, GatePipeline):
+                if not isinstance(pipeline, SpinachTypes.GatePipeline):
                     raise TypeError(
                         f"pipeline is not a GatePipeline (got {type(pipeline).__name__})"
                     )
@@ -99,13 +105,13 @@ class SpinachBack:
         index = dict()
         for node in ast_nodes:
             match node:
-                case QubitDeclaration(name=name, number=number):
+                case SpinachTypes.QubitDeclaration(name=name, number=number):
                     index[name] = number
-                case ListDeclaration(name=name, items=items):
+                case SpinachTypes.ListDeclaration(name=name, items=items):
                     index[name] = items
-                case InstructionDeclaration(name=name, pipeline=pipeline):
+                case SpinachTypes.InstructionDeclaration(name=name, pipeline=pipeline):
                     index[name] = pipeline
-                case Action():
+                case SpinachTypes.Action():
                     SpinachBack.__handle_action(node, c, index)
         return c
 
@@ -124,4 +130,3 @@ class SpinachBack:
     @staticmethod
     def compile_to_pyquil(circuit: Circuit):
         return tk_to_pyquil(circuit)
-

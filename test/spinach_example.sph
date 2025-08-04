@@ -1,0 +1,7 @@
+
+tom : 1
+charle : 2
+
+reverse_entanglement_with_charle : N | H | CNOT(charle)
+tom -> N | reverse_entanglement_with_charle
+
