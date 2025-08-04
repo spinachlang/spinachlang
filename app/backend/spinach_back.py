@@ -1,7 +1,11 @@
 from app.types import *
 from app.types import QubitDeclaration
 from app.types import Action
-from pytket import Circuit
+from pytket import Circuit,
+from pytket.qasm import circuit_to_qasm_str
+from pytket.extensions.qiskit import tk_to_qiskit
+from pytket.extensions.cirq import tk_to_cirq
+from pytket.extensions.pyquil import tk_to_pyquil
 
 
 class SpinachBack:
@@ -17,7 +21,7 @@ class SpinachBack:
         # Sdg and Tdg are not supported by pytket we will need in the futur to do something like: circ.add_gate(OpType.Sdg, [], [q])
         # Measuer all and barrier will be their own instructions since it affects all the qibits
         # There is a way to add gates with add_gate
-        _gate_dispatch = {
+        gate_dispatch = {
             "X": c.X,
             "Y": c.Y,
             "Z": c.Z,
@@ -38,7 +42,7 @@ class SpinachBack:
             "M": c.MEASURE,
             "MEASURE": c.MEASURE,
         }
-        fn = _gate_dispatch.get(gate_call.name)
+        fn = gate_dispatch.get(gate_call.name)
         if fn is None:
             raise ValueError(f"Unknown gate {gate_call.name!r}")
 
@@ -90,7 +94,7 @@ class SpinachBack:
                 SpinachBack.__handle_pipeline(number_target, pipeline, c, index)
 
     @staticmethod
-    def compile_into_circuit(ast_nodes):
+    def compile_to_circuit(ast_nodes):
         c = Circuit(SpinachBack.__get_max_qubit_number(ast_nodes))
         index = dict()
         for node in ast_nodes:
@@ -104,3 +108,20 @@ class SpinachBack:
                 case Action():
                     SpinachBack.__handle_action(node, c, index)
         return c
+
+    @staticmethod
+    def compile_to_openqasm(circuit: Circuit):
+        return circuit_to_qasm_str(circuit)
+
+    @staticmethod
+    def compile_to_qiskit(circuit: Circuit):
+        return tk_to_qiskit(circuit)
+
+    @staticmethod
+    def compile_to_cirq(circuit: Circuit):
+        return tk_to_cirq(circuit)
+
+    @staticmethod
+    def compile_to_pyquil(circuit: Circuit):
+        return tk_to_pyquil(circuit)
+
