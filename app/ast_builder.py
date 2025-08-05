@@ -1,5 +1,13 @@
-from app.types import *
-from lark import Lark, Transformer, v_args, Tree, Token
+from app.spinach_types import (
+    GatePipeline,
+    GateCall,
+    Action,
+    QubitDeclaration,
+    ListDeclaration,
+    InstructionDeclaration,
+)
+from lark import Transformer, v_args
+from typing import Union, List
 
 
 class AstBuilder(Transformer):
@@ -13,26 +21,24 @@ class AstBuilder(Transformer):
         return int(str(items[0]))
 
     def list(self, items):
-        # items are names
         return [str(i) for i in items]
 
     @v_args(inline=True)
-    def qubit_declaration(self, name, colon, number):
+    def qubit_declaration(self, name, _, number):
         return QubitDeclaration(name=name, count=number)
 
     @v_args(inline=True)
-    def list_declaration(self, name, colon, lst):
+    def list_declaration(self, name, _, lst):
         return ListDeclaration(name=name, items=lst)
 
     @v_args(inline=True)
-    def instruction_declaration(self, name, colon, gate_pip):
+    def instruction_declaration(self, name, _, gate_pip):
         return InstructionDeclaration(name=name, pipeline=gate_pip)
 
     def gate_call(self, items):
         name_token = items[0]
         args = []
         if len(items) > 1 and items[1] is not None:
-            # args is a list of name/number
             args = items[1]
         return GateCall(name=str(name_token), args=args)
 

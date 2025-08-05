@@ -7,7 +7,7 @@ class Spinach:
     @staticmethod
     def creat_circuit(code: str):
         return SpinachBack.compile_to_circuit(
-            AstBuilder.transform(SpinachFront.get_tree(code))
+            AstBuilder().transform(SpinachFront.get_tree(code))
         )
 
     @staticmethod
