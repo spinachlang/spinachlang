@@ -27,6 +27,7 @@ class SpinachBack:
         # Measuer all and barrier will be their own instructions since it affects all the qibits
         # There is a way to add gates with add_gate
         gate_dispatch = {
+            "N": c.N,
             "X": c.X,
             "Y": c.Y,
             "Z": c.Z,
