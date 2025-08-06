@@ -6,10 +6,12 @@ Its goal is to provide a dedicated language that can simulate and compile code f
 At the moment, there are three kinds of statements. qbit declaration, pipeline declaration and actions.
 ## qubit declaration
 To create a qubit, name a qubit and assign a number like this:
-````
-```
-tom : 1
 
+```
+
+tom : 1
+```
+```
 ```
 
 ## pipeline declaration
