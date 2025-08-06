@@ -1,7 +1,7 @@
 
 tom : 1
-charle : 2
-# reverse_entanglement_with_charle : N | H | CNOT(charle)
-tom -> N | MEASURE
-charle -> MEASURE
-
+charle : 0
+entangle : N | H | CNOT(charle) 
+tom -> 2 entangle
+tom -> MEASURE(0)
+charle -> MEASURE(1)

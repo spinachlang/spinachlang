@@ -1,17 +1,12 @@
 from app.frontend.spinach_front import SpinachFront
 from app.backend.spinach_back import SpinachBack
 from app.ast_builder import AstBuilder
-from lark import Tree
 
 
 class Spinach:
     @staticmethod
     def creat_circuit(code: str):
         built = AstBuilder().transform(SpinachFront.get_tree(code))
-        if isinstance(built, Tree):
-            print("🔍 Top-level still a Tree:", built.data)
-            for child in built.children:
-                print("  child:", type(child), child)
         return SpinachBack.compile_to_circuit(built)
 
     @staticmethod
