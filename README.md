@@ -1,5 +1,5 @@
 # Spinach lang
-![place holder logo for Spinach](po_logo.png "Spinach")
+![logo for Spinach](spinach.png "Spinach")
 Spinach is a quantum programming language.
 Its goal is to provide a dedicated language that can simulate and compile code for execution on quantum computers. Spinach also aims to offer tools that allow users to do more with less code.
 
