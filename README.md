@@ -11,8 +11,6 @@ To create a qubit, name a qubit and assign a number like this:
 
 tom : 1
 ```
-```
-```
 
 ## pipeline declaration
 To create a pipeline, name it the same way but by giving it a pipeline instead of a number
