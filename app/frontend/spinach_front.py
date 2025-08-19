@@ -7,5 +7,5 @@ class SpinachFront:
     def get_tree(code: str):
         with open(Path("app") / "frontend" / "grammar.lark") as f:
             grammar = f.read()
-        parser = Lark(grammar, start="start", parser="earley")
+        parser = Lark(grammar, start="start", parser="lalr")
         return parser.parse(code)

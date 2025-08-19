@@ -24,7 +24,7 @@ gate: upper_name ["(" [args] ")"] -> gate_call
 args: (name | number) ("," (name | number))*
 
 // Actions: q1 -> gate or q1 -> my_instruction
-action: (name | number | list) "->" [number] (name | gate_pip)
+action: (name | number | list) "->" [number] (gate_pip)
 
 // List of names
 list: "[" name ("," name)* "]"
