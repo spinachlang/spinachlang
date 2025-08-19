@@ -1,4 +1,3 @@
-from ast import List
 from app.spinach_types import (
     GateCall,
     GatePipeline,
@@ -7,6 +6,7 @@ from app.spinach_types import (
     ListDeclaration,
     Action,
 )
+import json
 from pytket import Circuit
 from pytket.qasm import circuit_to_qasm_str
 from pytket.extensions.qiskit import tk_to_qiskit
@@ -188,17 +188,19 @@ class SpinachBack:
         return c
 
     @staticmethod
-    def compile_to_openqasm(circuit: Circuit):
+    def compile_to_openqasm(circuit: Circuit) -> str:
         return circuit_to_qasm_str(circuit)
 
     @staticmethod
-    def compile_to_qiskit(circuit: Circuit):
-        return tk_to_qiskit(circuit)
+    def compile_to_json(circuit: Circuit) -> str:
+        return json.dumps(circuit.to_dict(), indent=4, sort_keys=True)
 
     @staticmethod
-    def compile_to_cirq(circuit: Circuit):
-        return tk_to_cirq(circuit)
+    def compile_to_cirq_python(circuit: Circuit) -> str:
+        cirq_circ = tk_to_cirq(circuit)
+        return f"import cirq\n\ncircuit = {repr(cirq_circ)}\nprint(circuit)"
 
     @staticmethod
-    def compile_to_pyquil(circuit: Circuit):
-        return tk_to_pyquil(circuit)
+    def compile_to_quil(circuit: Circuit) -> str:
+        pyquil_prog = tk_to_pyquil(circuit)
+        return pyquil_prog.out()

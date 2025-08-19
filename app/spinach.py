@@ -13,9 +13,9 @@ class Spinach:
     def compile(code: str, language: str) -> str:
         dispatch = {
             "qasm": SpinachBack.compile_to_openqasm,
-            "qiskit": SpinachBack.compile_to_qiskit,
-            "pyquil": SpinachBack.compile_to_pyquil,
-            "cirq": SpinachBack.compile_to_cirq,
+            "json": SpinachBack.compile_to_json,
+            "cirq": SpinachBack.compile_to_cirq_python,
+            "quil": SpinachBack.compile_to_quil,
         }
         if language not in dispatch:
             raise ValueError("language cant be none")
