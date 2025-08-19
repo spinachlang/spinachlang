@@ -58,3 +58,32 @@ class TestSpinachFront(unittest.TestCase):
         self.assertIsInstance(gate_call.children[0], Tree)
         self.assertEqual(gate_call.children[0].data, "upper_name")
         self.assertEqual(gate_call.children[0].children[0], "H")
+
+    def test_pipeline_naming_with_name_at_first(self):
+        code = """
+        o_o : name1 | H
+        """
+        tree = SpinachFront.get_tree(code=code)
+        logging.debug("tree: " + tree.pretty())
+        decl = tree.children[0]
+        self.assertIsInstance(decl, Tree)
+        self.assertEqual(decl.data, "declaration")
+
+        instruction = decl.children[0]
+        self.assertIsInstance(instruction, Tree)
+        self.assertEqual(instruction.data, "instruction_declaration")
+        name_node, instruction_node = instruction.children
+        self.assertEqual(name_node.data, "name")
+        self.assertEqual(name_node.children[0], "o_o")
+        self.assertEqual(instruction_node.data, "gate_pip")
+        self.assertIsInstance(instruction_node.children[1], Tree)
+        self.assertIsInstance(instruction_node.children[0], Tree)
+        gate_call = instruction_node.children[1]
+        gate_call_name = instruction_node.children[0]
+        self.assertEqual(gate_call_name.data, "name")
+        self.assertEqual(gate_call_name.children[0], "name1")
+
+        self.assertEqual(gate_call.data, "gate_call")
+        self.assertIsInstance(gate_call.children[0], Tree)
+        self.assertEqual(gate_call.children[0].data, "upper_name")
+        self.assertEqual(gate_call.children[0].children[0], "H")

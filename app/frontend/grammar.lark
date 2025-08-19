@@ -18,8 +18,7 @@ list_declaration: name ":" list
 instruction_declaration: name ":" gate_pip
 
 // Gate pipelines like A | B | my_instruction
-gate_pip: gate ("|" (gate | name))*
-
+gate_pip: (name | gate) ("|" (gate | name))*
 // Allow: GATE, GATE(), GATE(arg, ...) 
 gate: upper_name ["(" [args] ")"] -> gate_call
 args: (name | number) ("," (name | number))*
