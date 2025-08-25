@@ -1,5 +1,6 @@
 from app.spinach_types import (
     GateCall,
+    GatePipeByName,
     GatePipeline,
     QubitDeclaration,
     InstructionDeclaration,
@@ -138,13 +139,18 @@ class SpinachBack:
 
     @staticmethod
     def __handle_pipeline(target: int, pipeline: GatePipeline, c: Circuit, index: dict):
-        for gate in pipeline.parts:
-            gate_call = index[gate] if isinstance(gate, str) else gate
-            if not isinstance(gate_call, GateCall):
-                raise TypeError(
-                    f"gate_call is not a GateCall (got {type(gate).__name__})"
+        for part in pipeline.parts:
+            if isinstance(part, GatePipeByName):
+                SpinachBack.__handle_pipeline(
+                    target=target,
+                    pipeline=GatePipeline(parts=index[part.name].parts[::-1])
+                    if part.rev
+                    else index[part.name],
+                    c=c,
+                    index=index,
                 )
-            SpinachBack.__apply_gate(target, gate_call, c, index)
+            else:
+                SpinachBack.__apply_gate(target, part, c, index)
 
     @staticmethod
     def __handle_action(action: Action, c: Circuit, index: dict):
@@ -193,7 +199,7 @@ class SpinachBack:
 
     @staticmethod
     def compile_to_json(circuit: Circuit) -> str:
-        return json.dumps(circuit.to_dict(), indent=4, sort_keys=True)
+        return json.dumps(circuit.to_dict(), indent=2, sort_keys=True)
 
     @staticmethod
     def compile_to_cirq_python(circuit: Circuit) -> str:

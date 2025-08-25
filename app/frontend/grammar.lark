@@ -13,24 +13,25 @@ declaration: qubit_declaration
            | list_declaration
            | instruction_declaration
 
-qubit_declaration: name ":" number
-list_declaration: name ":" list
-instruction_declaration: name ":" gate_pip
+qubit_declaration: NAME ":" NUMBER
+list_declaration: NAME ":" list
+instruction_declaration: NAME ":" gate_pip
 
 // Gate pipelines like A | B | my_instruction
-gate_pip: (name | gate) ("|" (gate | name))*
+gate_pip: (gate_pipe_by_name | gate) ("|" (gate | gate_pipe_by_name ))*
+gate_pipe_by_name: NAME [REVERSE_ARROW]
 // Allow: GATE, GATE(), GATE(arg, ...) 
-gate: upper_name ["(" [args] ")"] -> gate_call
-args: (name | number) ("," (name | number))*
+gate: UPPER_NAME ["(" [args] ")"] -> gate_call
+args: (NAME | NUMBER) ("," (NAME | NUMBER))*
 
 // Actions: q1 -> gate or q1 -> my_instruction
-action: (name | number | list) "->" [number] (gate_pip)
+action: ( NAME | NUMBER | list) "->" [NUMBER] (gate_pip)
 
 // List of names
-list: "[" name ("," name)* "]"
+list: "[" NAME ("," NAME)* "]"
 
 // Identifiers
-name: /[a-z][a-zA-Z0-9_]*/
-upper_name: /[A-Z]+/
-number: /\d+/
-
+NAME: /[a-z][a-zA-Z0-9_]*/
+UPPER_NAME: /[A-Z]+/
+NUMBER: /\d+/
+REVERSE_ARROW: "<-"

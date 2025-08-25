@@ -2,6 +2,5 @@
 tom : 1
 charle : 0
 entangle : N | H | CNOT(charle) 
-tom -> 2 entangle
-tom -> MEASURE(0)
-charle -> MEASURE(1)
+tom -> 2 entangle <-
+

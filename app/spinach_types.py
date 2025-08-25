@@ -12,13 +12,18 @@ class ListDeclaration(BaseModel):
     items: List[str]
 
 
+class GatePipeByName(BaseModel):
+    name: str
+    rev: bool
+
+
 class GateCall(BaseModel):
     name: str
     args: List[Union[str, int]] = Field(default_factory=list)
 
 
 class GatePipeline(BaseModel):
-    parts: List[Union[GateCall, str]]
+    parts: List[Union[GateCall, GatePipeByName]]
 
 
 class InstructionDeclaration(BaseModel):

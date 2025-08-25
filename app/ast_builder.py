@@ -1,4 +1,5 @@
 from app.spinach_types import (
+    GatePipeByName,
     GatePipeline,
     GateCall,
     Action,
@@ -7,7 +8,7 @@ from app.spinach_types import (
     InstructionDeclaration,
 )
 from lark import Transformer, v_args
-from typing import Union, List, Any
+from typing import Union, List
 
 
 class AstBuilder(Transformer):
@@ -17,11 +18,11 @@ class AstBuilder(Transformer):
 
     # Helpers for resolving instruction name references inside pipelines
     def _resolve_pipeline_parts(
-        self, parts: List[Union[GateCall, str, Any]], seen=None
+        self, parts: List[Union[GateCall, GatePipeByName]], seen=None
     ):
         if seen is None:
             seen = set()
-        resolved: List[Union[GateCall, Any]] = []
+        resolved: List[Union[GateCall, GatePipeByName]] = []
         for part in parts:
             if isinstance(part, str):
                 if part in seen:
@@ -85,38 +86,28 @@ class AstBuilder(Transformer):
         return res
 
     def gate_pip(self, items):
-        # items may include GateCall and/or instruction names (str)
-        parts: List[Union[GateCall, str, Any]] = []
-        for it in items:
-            parts.append(it)
-        # Resolve any nested instruction name references inside this pipeline
+        parts: List[Union[GateCall, GatePipeByName]] = []
+        for item in items:
+            parts.append(item)
         resolved_parts = self._resolve_pipeline_parts(parts)
         return GatePipeline(parts=resolved_parts)
 
     @v_args(inline=True)
+    def gate_pipe_by_name(self, name, rev=None):
+        return GatePipeByName(name=name, rev=rev is not None)
+
+    @v_args(inline=True)
     def action(self, target, count, instruction):
-        # instruction might be a string name, a GatePipeline, or mix
-        if isinstance(instruction, str):
-            instr_decl = self.instructions.get(instruction)
-            if instr_decl is None:
-                raise ValueError(
-                    f"Unknown instruction referenced in action: {instruction}"
-                )
-            pipeline = instr_decl.pipeline
-        elif isinstance(instruction, GatePipeline):
-            # Resolve any embedded name references inside the pipeline parts
-            resolved_parts = self._resolve_pipeline_parts(instruction.parts)
-            pipeline = GatePipeline(parts=resolved_parts)
-        else:
-            pipeline = instruction  # fallback; could be invalid shape
-        return Action(target=target, count=count, instruction=pipeline)
+        return Action(
+            target=target,
+            count=count,
+            instruction=GatePipeline(parts=instruction.parts),
+        )
 
     def declaration(self, items):
-        # unwrap single declaration
         return items[0]
 
     def start(self, items):
-        # top-level program: list of declarations/actions
         return items
 
     def statement(self, items):
