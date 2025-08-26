@@ -1,17 +1,24 @@
-from app.frontend.spinach_front import SpinachFront
-from lark import Tree
-import unittest
+"""Tests for SpinachFront parser behaviour."""
+
 import logging
+import unittest
+
+from lark import Tree
+
+from app.frontend.spinach_front import SpinachFront
 
 
 class TestSpinachFront(unittest.TestCase):
+    """Unit tests for SpinachFront"""
+
     def test_qubit_naming(self):
+        """Ensure qubit declaration names and numbers parse correctly."""
         code = """
         tom : 3
-        
+
         """
         tree = SpinachFront.get_tree(code=code)
-        logging.debug("tree: " + tree.pretty())
+        logging.debug("tree: %s", tree.pretty())
         self.assertEqual(tree.data, "statement")
 
         decl = tree.children[0]
@@ -29,11 +36,12 @@ class TestSpinachFront(unittest.TestCase):
         self.assertEqual(number_node, "3")
 
     def test_pipeline_naming(self):
+        """Ensure pipeline with gate before name parses correctly."""
         code = """
         o_o : H | name1
         """
         tree = SpinachFront.get_tree(code=code)
-        logging.debug("tree: " + tree.pretty())
+        logging.debug("tree: %s", tree.pretty())
         decl = tree.children[0]
         self.assertIsInstance(decl, Tree)
         self.assertEqual(decl.data, "declaration")
@@ -54,11 +62,12 @@ class TestSpinachFront(unittest.TestCase):
         self.assertEqual(gate_call.children[0], "H")
 
     def test_pipeline_naming_with_reverse(self):
+        """Ensure pipeline with reverse operator parses correctly."""
         code = """
         o_o : name1 <-
         """
         tree = SpinachFront.get_tree(code=code)
-        logging.debug("tree: " + tree.pretty())
+        logging.debug("tree: %s", tree.pretty())
         decl = tree.children[0]
         self.assertIsInstance(decl, Tree)
         self.assertEqual(decl.data, "declaration")
@@ -75,11 +84,12 @@ class TestSpinachFront(unittest.TestCase):
         self.assertEqual(gate_call_name.children[1], "<-")
 
     def test_pipeline_naming_with_name_at_first(self):
+        """Ensure pipeline with name before gate parses correctly."""
         code = """
         o_o : name1 | H
         """
         tree = SpinachFront.get_tree(code=code)
-        logging.debug("tree: " + tree.pretty())
+        logging.debug("tree: %s", tree.pretty())
         decl = tree.children[0]
         self.assertIsInstance(decl, Tree)
         self.assertEqual(decl.data, "declaration")
