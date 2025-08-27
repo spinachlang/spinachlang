@@ -11,3 +11,4 @@ pytket-projectq==0.38.0
 pytket-qir==0.24.1
 pathlib==1.0.1
 pytest==8.4.1
+pylint
