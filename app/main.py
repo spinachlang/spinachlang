@@ -1,12 +1,14 @@
-#!/usr/bin/env python3
+"""The CLI of spinach"""
 
 import sys
 import argparse
 import pathlib
+from app.exit_code import ExitCode
 from app.spinach import Spinach
 
 
 def read_code(path: str) -> str:
+    """Open the spinach file"""
     if path == "-":
         return sys.stdin.read()
     p = pathlib.Path(path)
@@ -20,6 +22,7 @@ def read_code(path: str) -> str:
 def infer_output_path(
     input_path: str, language: str, provided: str | None
 ) -> pathlib.Path:
+    """Name the output file"""
     if provided and provided != "-":
         return pathlib.Path(provided)
     in_path = pathlib.Path(input_path)
@@ -33,7 +36,8 @@ def infer_output_path(
     return pathlib.Path(f"{stem}{ext_map[language]}")
 
 
-def main():
+def main() -> None:
+    """CLI entry point"""
     parser = argparse.ArgumentParser(
         prog="spinach-compile",
         description="Compile .sph Spinach source into target quantum backend.",
@@ -59,20 +63,28 @@ def main():
 
     try:
         code = read_code(args.source)
-        compiled = Spinach.compile(code=code, language=args.language)
+    except FileNotFoundError as e:
+        sys.stderr.write(f"[File Error] {e}\n")
+        sys.exit(ExitCode.FILE_NOT_FOUND)
+    except ValueError as e:
+        sys.stderr.write(f"[Input Error] {e}\n")
+        sys.exit(ExitCode.INVALID_INPUT)
+    except OSError as e:
+        sys.stderr.write(f"[System Error] Failed to read file: {e}\n")
+        sys.exit(ExitCode.READ_ERROR)
+
+    compiled = Spinach.compile(code=code, language=args.language)
+
+    try:
         out_path = infer_output_path(args.source, args.language, args.output)
 
         if args.output == "-" or (args.output is None and str(out_path) == "-"):
             sys.stdout.write(compiled)
         else:
-            # If output is explicitly "-" or user wants stdout
-            if args.output == "-":
-                sys.stdout.write(compiled)
-            else:
-                out_path.write_text(compiled, encoding="utf-8")
-    except Exception as e:
-        sys.stderr.write(f"Error: {e}\n")
-        sys.exit(1)
+            out_path.write_text(compiled, encoding="utf-8")
+    except OSError as e:
+        sys.stderr.write(f"[Write Error] Could not write output: {e}\n")
+        sys.exit(ExitCode.WRITE_ERROR)
 
 
 if __name__ == "__main__":
