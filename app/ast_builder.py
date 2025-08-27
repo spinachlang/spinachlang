@@ -1,3 +1,9 @@
+"""Abstract syntax tree builder"""
+
+from typing import Union, List
+
+from lark import Transformer, v_args
+
 from app.spinach_types import (
     GatePipeByName,
     GatePipeline,
@@ -7,19 +13,20 @@ from app.spinach_types import (
     ListDeclaration,
     InstructionDeclaration,
 )
-from lark import Transformer, v_args
-from typing import Union, List
 
 
 class AstBuilder(Transformer):
+    """Abstract syntax tree builder"""
+
     def __init__(self):
         super().__init__()
         self.instructions: dict[str, InstructionDeclaration] = {}
 
-    # Helpers for resolving instruction name references inside pipelines
     def _resolve_pipeline_parts(
         self, parts: List[Union[GateCall, GatePipeByName]], seen=None
     ):
+        """Helpers for resolving instruction name references inside pipelines"""
+
         if seen is None:
             seen = set()
         resolved: List[Union[GateCall, GatePipeByName]] = []
@@ -44,32 +51,40 @@ class AstBuilder(Transformer):
         return resolved
 
     def name(self, items):
+        """handle name"""
         return str(items[0])
 
     def upper_name(self, items):
+        """handle upper name"""
         return str(items[0])
 
     def number(self, items):
+        """handle number"""
         return int(str(items[0]))
 
     def list(self, items):
+        """handle list"""
         return [str(i) for i in items]
 
     @v_args(inline=True)
     def qubit_declaration(self, name, number):
+        """handle qubit declaration"""
         return QubitDeclaration(name=name, number=number)
 
     @v_args(inline=True)
     def list_declaration(self, name, lst):
+        """handle list declaration"""
         return ListDeclaration(name=name, items=lst)
 
     @v_args(inline=True)
     def instruction_declaration(self, name, gate_pip):
+        """handle instruction declaration"""
         instr = InstructionDeclaration(name=name, pipeline=gate_pip)
         self.instructions[name] = instr
         return instr
 
     def gate_call(self, items):
+        """handle gate calls"""
         name_token = items[0]
         args = []
         if len(items) > 1 and items[1] is not None:
@@ -77,6 +92,7 @@ class AstBuilder(Transformer):
         return GateCall(name=str(name_token), args=args)
 
     def args(self, items):
+        """handle arguments"""
         res = []
         for it in items:
             if isinstance(it, (int, str)):
@@ -86,6 +102,7 @@ class AstBuilder(Transformer):
         return res
 
     def gate_pip(self, items):
+        """handle gate pipeline"""
         parts: List[Union[GateCall, GatePipeByName]] = []
         for item in items:
             parts.append(item)
@@ -94,10 +111,12 @@ class AstBuilder(Transformer):
 
     @v_args(inline=True)
     def gate_pipe_by_name(self, name, rev=None):
+        """handle named gate pipeline"""
         return GatePipeByName(name=name, rev=rev is not None)
 
     @v_args(inline=True)
     def action(self, target, count, instruction):
+        """handle actions"""
         return Action(
             target=target,
             count=count,
@@ -105,10 +124,13 @@ class AstBuilder(Transformer):
         )
 
     def declaration(self, items):
+        """handle declarations"""
         return items[0]
 
     def start(self, items):
+        """starting point"""
         return items
 
     def statement(self, items):
+        """handle statements"""
         return items[0]
