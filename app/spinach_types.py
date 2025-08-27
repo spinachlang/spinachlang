@@ -1,37 +1,53 @@
-from pydantic import BaseModel, Field
+""" "types used to describe the language structure"""
+
 from typing import List, Optional, Union
+from pydantic import BaseModel, Field
 
 
 class QubitDeclaration(BaseModel):
+    """Association of a qubit number to a name"""
+
     name: str
     number: int
 
 
 class ListDeclaration(BaseModel):
+    """Association of a list to a name"""
+
     name: str
     items: List[str]
 
 
 class GatePipeByName(BaseModel):
+    """Call of a pipeline using its name"""
+
     name: str
     rev: bool
 
 
 class GateCall(BaseModel):
+    """Call of a gate with it's arguments"""
+
     name: str
     args: List[Union[str, int]] = Field(default_factory=list)
 
 
 class GatePipeline(BaseModel):
+    """The representation of a pipeline"""
+
     parts: List[Union[GateCall, GatePipeByName]]
 
 
 class InstructionDeclaration(BaseModel):
+    """Association of a gate pipe to a name"""
+
     name: str
     pipeline: GatePipeline
 
 
 class Action(BaseModel):
+    """Execution of a gatepipe on a qubit"""
+
     target: Union[str, int, list]
     count: Optional[int] = None
     instruction: Union[GatePipeline, str]

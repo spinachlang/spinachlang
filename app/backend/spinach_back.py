@@ -1,3 +1,11 @@
+"""backend of spinach"""
+
+import json
+from pytket import Circuit
+from pytket.qasm import circuit_to_qasm_str
+from pytket.extensions.cirq import tk_to_cirq
+from pytket.extensions.pyquil import tk_to_pyquil
+
 from app.spinach_types import (
     GateCall,
     GatePipeByName,
@@ -7,17 +15,14 @@ from app.spinach_types import (
     ListDeclaration,
     Action,
 )
-import json
-from pytket import Circuit
-from pytket.qasm import circuit_to_qasm_str
-from pytket.extensions.qiskit import tk_to_qiskit
-from pytket.extensions.cirq import tk_to_cirq
-from pytket.extensions.pyquil import tk_to_pyquil
 
 
 class SpinachBack:
+    """backend of spinach"""
+
     @staticmethod
     def __get_max_qubit_number(ast_nodes):
+        """figure out what's the maximum qubit number used in the code"""
         return max(
             (decl.number for decl in ast_nodes if isinstance(decl, QubitDeclaration)),
             default=0,
@@ -25,22 +30,27 @@ class SpinachBack:
 
     @staticmethod
     def __handle_x_gate(c: Circuit, target: int, _: list):
+        """X gate"""
         c.X(target)
 
     @staticmethod
     def __handle_y_gate(c: Circuit, target: int, _: list):
+        """Y gate"""
         c.Y(target)
 
     @staticmethod
     def __handle_z_gate(c: Circuit, target: int, _: list):
+        """Z gate"""
         c.Z(target)
 
     @staticmethod
     def __handle_h_gate(c: Circuit, target: int, _: list):
+        """H gate"""
         c.H(target)
 
     @staticmethod
     def __handle_s_gate(c: Circuit, target: int, _: list):
+        """S gate"""
         c.S(target)
 
     @staticmethod
@@ -49,61 +59,72 @@ class SpinachBack:
 
     @staticmethod
     def __handle_sdg_gate(c: Circuit, target: int, _: list):
+        """S dager gate"""
         c.Sdg(target)
 
     @staticmethod
     def __handle_tdg_gate(c: Circuit, target: int, _: list):
+        """T dager gate"""
         c.Tdg(target)
 
     @staticmethod
     def __handle_rx_gate(c: Circuit, target: int, _: list):
+        """RX gate"""
         c.Rx(target)
 
     @staticmethod
     def __handle_ry_gate(c: Circuit, target: int, _: list):
+        """RY gate"""
         c.Ry(target)
 
     @staticmethod
     def __handle_rz_gate(c: Circuit, target: int, _: list):
+        """RZ gate"""
         c.Rz(target)
 
     @staticmethod
     def __handle_cx_gate(c: Circuit, target: int, args: list):
+        """CX gate"""
         c.CX(args[0], target)
 
     @staticmethod
     def __handle_cy_gate(c: Circuit, target: int, args: list):
+        """CY gate"""
         c.CY(args[0], target)
 
     @staticmethod
     def __handle_cz_gate(c: Circuit, target: int, args: list):
+        """CZ gate"""
         c.CZ(args[0], target)
 
     @staticmethod
     def __handle_ch_gate(c: Circuit, target: int, args: list):
+        """CH gate"""
         c.CH(args[0], target)
 
     @staticmethod
     def __handle_cu1_gate(c: Circuit, target: int, args: list):
+        """CU1 gate"""
         c.CU1(args[0], args[1], target)
 
     @staticmethod
     def __handle_swap_gate(c: Circuit, target: int, args: list):
+        """swap gate"""
         c.SWAP(target, args[0])
 
     @staticmethod
     def __handle_ccx_gate(c: Circuit, target: int, args: list):
+        """CCX gate"""
         c.CCX(args[0], args[1], target)
 
     @staticmethod
     def __handle_measure_gate(c: Circuit, target: int, args: list):
+        """measure gate"""
         c.Measure(target, args[0])
 
     @staticmethod
     def __apply_gate(target: int, gate_call: GateCall, c: Circuit, index: dict):
-        # Sdg and Tdg are not supported by pytket we will need in the futur to do something like: circ.add_gate(OpType.Sdg, [], [q])
-        # Measuer all and barrier will be their own instructions since it affects all the qibits
-        # There is a way to add gates with add_gate
+        """apply a gate to a qubit"""
         gate_dispatch = {
             "N": SpinachBack.__handle_x_gate,
             "X": SpinachBack.__handle_x_gate,
@@ -139,6 +160,7 @@ class SpinachBack:
 
     @staticmethod
     def __handle_pipeline(target: int, pipeline: GatePipeline, c: Circuit, index: dict):
+        """apply a gate pipeline to a qubit"""
         for part in pipeline.parts:
             if isinstance(part, GatePipeByName):
                 SpinachBack.__handle_pipeline(
@@ -154,6 +176,7 @@ class SpinachBack:
 
     @staticmethod
     def __handle_action(action: Action, c: Circuit, index: dict):
+        """handle an action statement"""
         if isinstance(action.target, list):
             targets = action.target
         else:
@@ -179,8 +202,9 @@ class SpinachBack:
 
     @staticmethod
     def compile_to_circuit(ast_nodes):
+        """generate a tket circuit from ast nodes"""
         c = Circuit(SpinachBack.__get_max_qubit_number(ast_nodes) + 1, 10)
-        index = dict()
+        index = {}
         for node in ast_nodes:
             match node:
                 case QubitDeclaration(name=name, number=number):
@@ -195,18 +219,22 @@ class SpinachBack:
 
     @staticmethod
     def compile_to_openqasm(circuit: Circuit) -> str:
+        """create a qasm code representation of a tket circuit"""
         return circuit_to_qasm_str(circuit)
 
     @staticmethod
     def compile_to_json(circuit: Circuit) -> str:
+        """create a json representation of a tket circuit"""
         return json.dumps(circuit.to_dict(), indent=2, sort_keys=True)
 
     @staticmethod
     def compile_to_cirq_python(circuit: Circuit) -> str:
+        """create a python with cirq code representation of a tket circuit"""
         cirq_circ = tk_to_cirq(circuit)
         return f"import cirq\n\ncircuit = {repr(cirq_circ)}\nprint(circuit)"
 
     @staticmethod
     def compile_to_quil(circuit: Circuit) -> str:
+        """create a quil code representation of a tket circuit"""
         pyquil_prog = tk_to_pyquil(circuit)
         return pyquil_prog.out()
