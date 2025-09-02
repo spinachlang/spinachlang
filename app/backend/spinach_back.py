@@ -88,9 +88,19 @@ class SpinachBack:
         c.CX(args[0], target)
 
     @staticmethod
+    def __handle_fliped_cx_gate(c: Circuit, target: int, args: list):
+        """FCX gate"""
+        c.CX(target, args[0])
+
+    @staticmethod
     def __handle_cy_gate(c: Circuit, target: int, args: list):
         """CY gate"""
         c.CY(args[0], target)
+
+    @staticmethod
+    def __handle_fliped_cy_gate(c: Circuit, target: int, args: list):
+        """FCY gate"""
+        c.CY(target, args[0])
 
     @staticmethod
     def __handle_cz_gate(c: Circuit, target: int, args: list):
@@ -98,9 +108,19 @@ class SpinachBack:
         c.CZ(args[0], target)
 
     @staticmethod
+    def __handle_fliped_cz_gate(c: Circuit, target: int, args: list):
+        """FCZ gate"""
+        c.CZ(target, args[0])
+
+    @staticmethod
     def __handle_ch_gate(c: Circuit, target: int, args: list):
         """CH gate"""
         c.CH(args[0], target)
+
+    @staticmethod
+    def __handle_fliped_ch_gate(c: Circuit, target: int, args: list):
+        """FCH gate"""
+        c.CH(target, args[0])
 
     @staticmethod
     def __handle_cu1_gate(c: Circuit, target: int, args: list):
@@ -139,10 +159,15 @@ class SpinachBack:
             "RY": SpinachBack.__handle_ry_gate,
             "RZ": SpinachBack.__handle_rz_gate,
             "CNOT": SpinachBack.__handle_cx_gate,
+            "FCNOT": SpinachBack.__handle_fliped_cx_gate,
             "CX": SpinachBack.__handle_cx_gate,
+            "FCX": SpinachBack.__handle_fliped_cx_gate,
             "CY": SpinachBack.__handle_cy_gate,
+            "FCY": SpinachBack.__handle_fliped_cy_gate,
             "CZ": SpinachBack.__handle_cz_gate,
+            "FCZ": SpinachBack.__handle_fliped_cz_gate,
             "CH": SpinachBack.__handle_ch_gate,
+            "FCH": SpinachBack.__handle_fliped_ch_gate,
             "CU1": SpinachBack.__handle_cu1_gate,
             "SWAP": SpinachBack.__handle_swap_gate,
             "TOFFOLI": SpinachBack.__handle_ccx_gate,
