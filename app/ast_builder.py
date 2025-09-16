@@ -70,12 +70,12 @@ class AstBuilder(Transformer):
     @v_args(inline=True)
     def qubit_declaration(self, name, number):
         """handle qubit declaration"""
-        return QubitDeclaration(name=name, qubit=Qubit(number))
+        return QubitDeclaration(name=name, qubit=Qubit("q", number))
 
     @v_args(inline=True)
     def bit_declaration(self, name, number):
         """handle qubit declaration"""
-        return BitDeclaration(name=name, bit=Bit(number))
+        return BitDeclaration(name=name, bit=Bit("c", number))
 
     @v_args(inline=True)
     def list_declaration(self, name, lst):

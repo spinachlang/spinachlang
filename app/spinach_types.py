@@ -11,12 +11,18 @@ class QubitDeclaration(BaseModel):
     name: str
     qubit: Qubit
 
+    class Config:
+        arbitrary_types_allowed = True
+
 
 class BitDeclaration(BaseModel):
     """Association of a qubit number to a name"""
 
     name: str
     bit: Bit
+
+    class Config:
+        arbitrary_types_allowed = True
 
 
 class ListDeclaration(BaseModel):

@@ -189,16 +189,20 @@ class SpinachBack:
         )
         fn(c, target, number_args)
 
+    @staticmethod
     def __ensure_qubit(c: Circuit, qb: Qubit):
         """Add a qubit to the circuit if not already present."""
         if qb not in c.qubits:
+            print("qb = " + str(qb))
             c.add_qubit(qb)
 
+    @staticmethod
     def __ensure_bit(c: Circuit, cb: Bit):
         """Add a bit to the circuit if not already present."""
         if cb not in c.bits:
             c.add_bit(cb)
 
+    @staticmethod
     def __handle_pipeline(
         target: Qubit, pipeline: GatePipeline, c: Circuit, index: dict
     ):
@@ -224,7 +228,11 @@ class SpinachBack:
         else:
             targets = [action.target]
         for target in targets:
-            SpinachBack.__ensure_qubit(c, target)
+            print("index" + str(index))
+            targeted_qubit = (
+                index[target] if isinstance(target, str) else Qubit("q", target)
+            )
+            SpinachBack.__ensure_qubit(c, targeted_qubit)
             for _ in range(action.count or 1):
                 pipeline = (
                     index[action.instruction]
@@ -236,9 +244,6 @@ class SpinachBack:
                         f"pipeline is not a GatePipeline (got {type(pipeline).__name__})"
                     )
 
-                targeted_qubit = (
-                    index[target] if isinstance(target, str) else Qubit(target)
-                )
                 if not isinstance(targeted_qubit, Qubit):
                     raise TypeError(
                         f"target is not a qubit (got {type(target).__name__})"
@@ -267,6 +272,8 @@ class SpinachBack:
     @staticmethod
     def compile_to_openqasm(circuit: Circuit) -> str:
         """create a qasm code representation of a tket circuit"""
+        print(circuit.qubits)
+        print([type(q) for q in circuit.qubits])
         return circuit_to_qasm_str(circuit)
 
     @staticmethod
