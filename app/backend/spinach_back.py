@@ -1,7 +1,7 @@
 """backend of spinach"""
 
 import json
-from pytket import Circuit
+from pytket import Circuit, Qubit, Bit
 from pytket.qasm import circuit_to_qasm_str
 from pytket.extensions.cirq import tk_to_cirq
 from pytket.extensions.pyquil import tk_to_pyquil
@@ -11,6 +11,7 @@ from app.spinach_types import (
     GatePipeByName,
     GatePipeline,
     QubitDeclaration,
+    BitDeclaration,
     InstructionDeclaration,
     ListDeclaration,
     Action,
@@ -21,129 +22,134 @@ class SpinachBack:
     """backend of spinach"""
 
     @staticmethod
-    def __get_max_qubit_number(ast_nodes):
-        """figure out what's the maximum qubit number used in the code"""
-        return max(
-            (decl.number for decl in ast_nodes if isinstance(decl, QubitDeclaration)),
-            default=0,
-        )
-
-    @staticmethod
-    def __handle_x_gate(c: Circuit, target: int, _: list):
+    def __handle_x_gate(c: Circuit, target: Qubit, _: list):
         """X gate"""
         c.X(target)
 
     @staticmethod
-    def __handle_y_gate(c: Circuit, target: int, _: list):
+    def __handle_y_gate(c: Circuit, target: Qubit, _: list):
         """Y gate"""
         c.Y(target)
 
     @staticmethod
-    def __handle_z_gate(c: Circuit, target: int, _: list):
+    def __handle_z_gate(c: Circuit, target: Qubit, _: list):
         """Z gate"""
         c.Z(target)
 
     @staticmethod
-    def __handle_h_gate(c: Circuit, target: int, _: list):
+    def __handle_h_gate(c: Circuit, target: Qubit, _: list):
         """H gate"""
         c.H(target)
 
     @staticmethod
-    def __handle_s_gate(c: Circuit, target: int, _: list):
+    def __handle_s_gate(c: Circuit, target: Qubit, _: list):
         """S gate"""
         c.S(target)
 
     @staticmethod
-    def __handle_t_gate(c: Circuit, target: int, _: list):
+    def __handle_t_gate(c: Circuit, target: Qubit, _: list):
         c.T(target)
 
     @staticmethod
-    def __handle_sdg_gate(c: Circuit, target: int, _: list):
+    def __handle_sdg_gate(c: Circuit, target: Qubit, _: list):
         """S dager gate"""
         c.Sdg(target)
 
     @staticmethod
-    def __handle_tdg_gate(c: Circuit, target: int, _: list):
+    def __handle_tdg_gate(c: Circuit, target: Qubit, _: list):
         """T dager gate"""
         c.Tdg(target)
 
     @staticmethod
-    def __handle_rx_gate(c: Circuit, target: int, _: list):
+    def __handle_rx_gate(c: Circuit, target: Qubit, _: list):
         """RX gate"""
         c.Rx(target)
 
     @staticmethod
-    def __handle_ry_gate(c: Circuit, target: int, _: list):
+    def __handle_ry_gate(c: Circuit, target: Qubit, _: list):
         """RY gate"""
         c.Ry(target)
 
     @staticmethod
-    def __handle_rz_gate(c: Circuit, target: int, _: list):
+    def __handle_rz_gate(c: Circuit, target: Qubit, _: list):
         """RZ gate"""
         c.Rz(target)
 
     @staticmethod
-    def __handle_cx_gate(c: Circuit, target: int, args: list):
+    def __handle_cx_gate(c: Circuit, target: Qubit, args: list):
         """CX gate"""
+        SpinachBack.__ensure_qubit(c, args[0])
         c.CX(args[0], target)
 
     @staticmethod
-    def __handle_fliped_cx_gate(c: Circuit, target: int, args: list):
+    def __handle_fliped_cx_gate(c: Circuit, target: Qubit, args: list):
         """FCX gate"""
+        SpinachBack.__ensure_qubit(c, args[0])
         c.CX(target, args[0])
 
     @staticmethod
-    def __handle_cy_gate(c: Circuit, target: int, args: list):
+    def __handle_cy_gate(c: Circuit, target: Qubit, args: list):
         """CY gate"""
+        SpinachBack.__ensure_qubit(c, args[0])
         c.CY(args[0], target)
 
     @staticmethod
-    def __handle_fliped_cy_gate(c: Circuit, target: int, args: list):
+    def __handle_fliped_cy_gate(c: Circuit, target: Qubit, args: list):
         """FCY gate"""
+        SpinachBack.__ensure_qubit(c, args[0])
         c.CY(target, args[0])
 
     @staticmethod
-    def __handle_cz_gate(c: Circuit, target: int, args: list):
+    def __handle_cz_gate(c: Circuit, target: Qubit, args: list):
         """CZ gate"""
+        SpinachBack.__ensure_qubit(c, args[0])
         c.CZ(args[0], target)
 
     @staticmethod
-    def __handle_fliped_cz_gate(c: Circuit, target: int, args: list):
+    def __handle_fliped_cz_gate(c: Circuit, target: Qubit, args: list):
         """FCZ gate"""
+        SpinachBack.__ensure_qubit(c, args[0])
         c.CZ(target, args[0])
 
     @staticmethod
-    def __handle_ch_gate(c: Circuit, target: int, args: list):
+    def __handle_ch_gate(c: Circuit, target: Qubit, args: list):
         """CH gate"""
+        SpinachBack.__ensure_qubit(c, args[0])
         c.CH(args[0], target)
 
     @staticmethod
-    def __handle_fliped_ch_gate(c: Circuit, target: int, args: list):
+    def __handle_fliped_ch_gate(c: Circuit, target: Qubit, args: list):
         """FCH gate"""
+        SpinachBack.__ensure_qubit(c, args[0])
         c.CH(target, args[0])
 
     @staticmethod
-    def __handle_cu1_gate(c: Circuit, target: int, args: list):
+    def __handle_cu1_gate(c: Circuit, target: Qubit, args: list):
         """CU1 gate"""
+        SpinachBack.__ensure_qubit(c, args[1])
         c.CU1(args[0], args[1], target)
 
     @staticmethod
-    def __handle_swap_gate(c: Circuit, target: int, args: list):
+    def __handle_swap_gate(c: Circuit, target: Qubit, args: list):
         """swap gate"""
+        SpinachBack.__ensure_qubit(c, args[0])
         c.SWAP(target, args[0])
 
     @staticmethod
-    def __handle_ccx_gate(c: Circuit, target: int, args: list):
+    def __handle_ccx_gate(c: Circuit, target: Qubit, args: list):
         """CCX gate"""
+        SpinachBack.__ensure_qubit(c, args[0])
+        SpinachBack.__ensure_qubit(c, args[1])
         c.CCX(args[0], args[1], target)
 
     @staticmethod
-    def __handle_measure_gate(c: Circuit, target: int, args: list):
+    def __handle_measure_gate(c: Circuit, target: Qubit, args: list):
         """measure gate"""
+        SpinachBack.__ensure_bit(c, args[0])
         c.Measure(target, args[0])
 
     @staticmethod
-    def __apply_gate(target: int, gate_call: GateCall, c: Circuit, index: dict):
+    def __apply_gate(target: Qubit, gate_call: GateCall, c: Circuit, index: dict):
         """apply a gate to a qubit"""
         gate_dispatch = {
             "N": SpinachBack.__handle_x_gate,
@@ -183,8 +189,19 @@ class SpinachBack:
         )
         fn(c, target, number_args)
 
-    @staticmethod
-    def __handle_pipeline(target: int, pipeline: GatePipeline, c: Circuit, index: dict):
+    def __ensure_qubit(c: Circuit, qb: Qubit):
+        """Add a qubit to the circuit if not already present."""
+        if qb not in c.qubits:
+            c.add_qubit(qb)
+
+    def __ensure_bit(c: Circuit, cb: Bit):
+        """Add a bit to the circuit if not already present."""
+        if cb not in c.bits:
+            c.add_bit(cb)
+
+    def __handle_pipeline(
+        target: Qubit, pipeline: GatePipeline, c: Circuit, index: dict
+    ):
         """apply a gate pipeline to a qubit"""
         for part in pipeline.parts:
             if isinstance(part, GatePipeByName):
@@ -207,6 +224,7 @@ class SpinachBack:
         else:
             targets = [action.target]
         for target in targets:
+            SpinachBack.__ensure_qubit(c, target)
             for _ in range(action.count or 1):
                 pipeline = (
                     index[action.instruction]
@@ -218,22 +236,26 @@ class SpinachBack:
                         f"pipeline is not a GatePipeline (got {type(pipeline).__name__})"
                     )
 
-                number_target = index[target] if isinstance(target, str) else target
-                if isinstance(number_target, str):
+                targeted_qubit = (
+                    index[target] if isinstance(target, str) else Qubit(target)
+                )
+                if not isinstance(targeted_qubit, Qubit):
                     raise TypeError(
-                        f"target is not a number (got {type(target).__name__})"
+                        f"target is not a qubit (got {type(target).__name__})"
                     )
-                SpinachBack.__handle_pipeline(number_target, pipeline, c, index)
+                SpinachBack.__handle_pipeline(targeted_qubit, pipeline, c, index)
 
     @staticmethod
     def compile_to_circuit(ast_nodes):
         """generate a tket circuit from ast nodes"""
-        c = Circuit(SpinachBack.__get_max_qubit_number(ast_nodes) + 1, 10)
+        c = Circuit()
         index = {}
         for node in ast_nodes:
             match node:
-                case QubitDeclaration(name=name, number=number):
-                    index[name] = number
+                case QubitDeclaration(name=name, qubit=qubit):
+                    index[name] = qubit
+                case BitDeclaration(name=name, bit=bit):
+                    index[name] = bit
                 case ListDeclaration(name=name, items=items):
                     index[name] = items
                 case InstructionDeclaration(name=name, pipeline=pipeline):

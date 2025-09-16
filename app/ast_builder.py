@@ -1,7 +1,7 @@
 """Abstract syntax tree builder"""
 
 from typing import Union, List
-
+from pytket import Circuit, Qubit
 from lark import Transformer, v_args
 
 from app.spinach_types import (
@@ -10,6 +10,7 @@ from app.spinach_types import (
     GateCall,
     Action,
     QubitDeclaration,
+    BitDeclaration,
     ListDeclaration,
     InstructionDeclaration,
 )
@@ -69,7 +70,12 @@ class AstBuilder(Transformer):
     @v_args(inline=True)
     def qubit_declaration(self, name, number):
         """handle qubit declaration"""
-        return QubitDeclaration(name=name, number=number)
+        return QubitDeclaration(name=name, qubit=Qubit(number))
+
+    @v_args(inline=True)
+    def bit_declaration(self, name, number):
+        """handle qubit declaration"""
+        return BitDeclaration(name=name, bit=Bit(number))
 
     @v_args(inline=True)
     def list_declaration(self, name, lst):
