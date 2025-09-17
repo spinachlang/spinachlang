@@ -146,8 +146,12 @@ class SpinachBack:
     @staticmethod
     def __handle_measure_gate(c: Circuit, target: Qubit, args: list):
         """measure gate"""
-        SpinachBack.__ensure_bit(c, args[0])
-        c.Measure(target, args[0])
+        if len(args) < 1:
+            bit = Bit("c", target.index[0])
+        else:
+            bit = args[0] if isinstance(args[0], Bit) else Bit("c", args[0])
+        SpinachBack.__ensure_bit(c, bit)
+        c.Measure(target, bit)
 
     @staticmethod
     def __handle_reset_gate(c: Circuit, target: Qubit, _: list):
@@ -245,12 +249,20 @@ class SpinachBack:
         """handle an action statement"""
         if isinstance(action.target, list):
             targets = action.target
+        if isinstance(action.target, str) and action.target == "*":
+            targets = list(c.qubits)
         else:
             targets = [action.target]
         for target in targets:
-            targeted_qubit = (
-                index[target] if isinstance(target, str) else Qubit("q", target)
-            )
+            match target:
+                case Qubit():
+                    targeted_qubit = target
+                case str():
+                    targeted_qubit = index[target]
+                case int():
+                    targeted_qubit = Qubit("q", target)
+                case _:
+                    raise TypeError(f"Unsupported target type: {type(target).__name__}")
             SpinachBack.__ensure_qubit(c, targeted_qubit)
             for _ in range(action.count or 1):
                 pipeline = (
