@@ -62,19 +62,19 @@ class SpinachBack:
         c.Tdg(target)
 
     @staticmethod
-    def __handle_rx_gate(c: Circuit, target: Qubit, _: list):
+    def __handle_rx_gate(c: Circuit, target: Qubit, args: list):
         """RX gate"""
-        c.Rx(target)
+        c.Rx(args[0], target)
 
     @staticmethod
-    def __handle_ry_gate(c: Circuit, target: Qubit, _: list):
+    def __handle_ry_gate(c: Circuit, target: Qubit, args: list):
         """RY gate"""
-        c.Ry(target)
+        c.Ry(args[0], target)
 
     @staticmethod
-    def __handle_rz_gate(c: Circuit, target: Qubit, _: list):
+    def __handle_rz_gate(c: Circuit, target: Qubit, args: list):
         """RZ gate"""
-        c.Rz(target)
+        c.Rz(args[0], target)
 
     @staticmethod
     def __handle_cx_gate(c: Circuit, target: Qubit, args: list):
