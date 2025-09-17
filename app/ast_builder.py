@@ -58,7 +58,7 @@ class AstBuilder(Transformer):
 
     def list(self, items):
         """handle list"""
-        return [str(i) for i in items]
+        return items
 
     @v_args(inline=True)
     def qubit_declaration(self, name, number):

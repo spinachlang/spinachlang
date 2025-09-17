@@ -22,6 +22,9 @@ from app.spinach_types import (
 class SpinachBack:
     """backend of spinach"""
 
+    DEFAULT_QUBIT_REGISTER = "q"
+    DEFAULT_BIT_REGISTER = "c"
+
     @staticmethod
     def __handle_x_gate(c: Circuit, target: Qubit, _: list):
         """X gate"""
@@ -79,77 +82,141 @@ class SpinachBack:
     @staticmethod
     def __handle_cx_gate(c: Circuit, target: Qubit, args: list):
         """CX gate"""
-        SpinachBack.__ensure_qubit(c, args[0])
-        c.CX(args[0], target)
+        controller = (
+            args[0]
+            if isinstance(args[0], Qubit)
+            else Qubit(SpinachBack.DEFAULT_QUBIT_REGISTER, args[0])
+        )
+        SpinachBack.__ensure_qubit(c, controller)
+        c.CX(controller, target)
 
     @staticmethod
     def __handle_fliped_cx_gate(c: Circuit, target: Qubit, args: list):
         """FCX gate"""
-        SpinachBack.__ensure_qubit(c, args[0])
-        c.CX(target, args[0])
+        controller = (
+            args[0]
+            if isinstance(args[0], Qubit)
+            else Qubit(SpinachBack.DEFAULT_QUBIT_REGISTER, args[0])
+        )
+        SpinachBack.__ensure_qubit(c, controller)
+        c.CX(target, controller)
 
     @staticmethod
     def __handle_cy_gate(c: Circuit, target: Qubit, args: list):
         """CY gate"""
-        SpinachBack.__ensure_qubit(c, args[0])
-        c.CY(args[0], target)
+        controller = (
+            args[0]
+            if isinstance(args[0], Qubit)
+            else Qubit(SpinachBack.DEFAULT_BIT_REGISTER, args[0])
+        )
+        SpinachBack.__ensure_qubit(c, controller)
+        c.CY(controller, target)
 
     @staticmethod
     def __handle_fliped_cy_gate(c: Circuit, target: Qubit, args: list):
         """FCY gate"""
-        SpinachBack.__ensure_qubit(c, args[0])
-        c.CY(target, args[0])
+        controller = (
+            args[0]
+            if isinstance(args[0], Qubit)
+            else Qubit(SpinachBack.DEFAULT_QUBIT_REGISTER, args[0])
+        )
+        SpinachBack.__ensure_qubit(c, controller)
+        c.CY(target, controller)
 
     @staticmethod
     def __handle_cz_gate(c: Circuit, target: Qubit, args: list):
         """CZ gate"""
-        SpinachBack.__ensure_qubit(c, args[0])
-        c.CZ(args[0], target)
+        controller = (
+            args[0]
+            if isinstance(args[0], Qubit)
+            else Qubit(SpinachBack.DEFAULT_QUBIT_REGISTER, args[0])
+        )
+        SpinachBack.__ensure_qubit(c, controller)
+        c.CZ(controller, target)
 
     @staticmethod
     def __handle_fliped_cz_gate(c: Circuit, target: Qubit, args: list):
         """FCZ gate"""
-        SpinachBack.__ensure_qubit(c, args[0])
-        c.CZ(target, args[0])
+        controller = (
+            args[0]
+            if isinstance(args[0], Qubit)
+            else Qubit(SpinachBack.DEFAULT_QUBIT_REGISTER, args[0])
+        )
+        SpinachBack.__ensure_qubit(c, controller)
+        c.CZ(target, controller)
 
     @staticmethod
     def __handle_ch_gate(c: Circuit, target: Qubit, args: list):
         """CH gate"""
-        SpinachBack.__ensure_qubit(c, args[0])
-        c.CH(args[0], target)
+        controller = (
+            args[0]
+            if isinstance(args[0], Qubit)
+            else Qubit(SpinachBack.DEFAULT_QUBIT_REGISTER, args[0])
+        )
+        SpinachBack.__ensure_qubit(c, controller)
+        c.CH(controller, target)
 
     @staticmethod
     def __handle_fliped_ch_gate(c: Circuit, target: Qubit, args: list):
         """FCH gate"""
-        SpinachBack.__ensure_qubit(c, args[0])
-        c.CH(target, args[0])
+        controller = (
+            args[0]
+            if isinstance(args[0], Qubit)
+            else Qubit(SpinachBack.DEFAULT_QUBIT_REGISTER, args[0])
+        )
+        SpinachBack.__ensure_qubit(c, controller)
+        c.CH(target, controller)
 
     @staticmethod
     def __handle_cu1_gate(c: Circuit, target: Qubit, args: list):
         """CU1 gate"""
-        SpinachBack.__ensure_qubit(c, args[1])
-        c.CU1(args[0], args[1], target)
+        controller = (
+            args[1]
+            if isinstance(args[1], Qubit)
+            else Qubit(SpinachBack.DEFAULT_QUBIT_REGISTER, args[1])
+        )
+        SpinachBack.__ensure_qubit(c, controller)
+        c.CU1(args[0], controller, target)
 
     @staticmethod
     def __handle_swap_gate(c: Circuit, target: Qubit, args: list):
         """swap gate"""
-        SpinachBack.__ensure_qubit(c, args[0])
-        c.SWAP(target, args[0])
+        controller = (
+            args[0]
+            if isinstance(args[0], Qubit)
+            else Qubit(SpinachBack.DEFAULT_QUBIT_REGISTER, args[0])
+        )
+        SpinachBack.__ensure_qubit(c, controller)
+        c.SWAP(target, controller)
 
     @staticmethod
     def __handle_ccx_gate(c: Circuit, target: Qubit, args: list):
         """CCX gate"""
-        SpinachBack.__ensure_qubit(c, args[0])
-        SpinachBack.__ensure_qubit(c, args[1])
-        c.CCX(args[0], args[1], target)
+        controller1 = (
+            args[0]
+            if isinstance(args[0], Qubit)
+            else Qubit(SpinachBack.DEFAULT_QUBIT_REGISTER, args[0])
+        )
+        controller2 = (
+            args[1]
+            if isinstance(args[1], Qubit)
+            else Qubit(SpinachBack.DEFAULT_QUBIT_REGISTER, args[1])
+        )
+        SpinachBack.__ensure_qubit(c, controller1)
+        SpinachBack.__ensure_qubit(c, controller2)
+        c.CCX(controller1, controller2, target)
 
     @staticmethod
     def __handle_measure_gate(c: Circuit, target: Qubit, args: list):
         """measure gate"""
         if len(args) < 1:
-            bit = Bit("c", target.index[0])
+            bit = Bit(SpinachBack.DEFAULT_BIT_REGISTER, target.index[0])
         else:
-            bit = args[0] if isinstance(args[0], Bit) else Bit("c", args[0])
+            bit = (
+                args[0]
+                if isinstance(args[0], Bit)
+                else Bit(SpinachBack.DEFAULT_BIT_REGISTER, args[0])
+            )
         SpinachBack.__ensure_bit(c, bit)
         c.Measure(target, bit)
 
@@ -207,24 +274,19 @@ class SpinachBack:
     @staticmethod
     def __ensure_qubit(c: Circuit, qb: Union[int, Qubit]):
         """Ensure the qubits is in the circuit."""
-        q = Qubit("q", qb) if isinstance(qb, int) else qb
+        q = Qubit(SpinachBack.DEFAULT_QUBIT_REGISTER, qb) if isinstance(qb, int) else qb
         if q not in c.qubits:
             c.add_qubit(q)
-            SpinachBack.__ensure_bit(c, Bit(q.index[0]))
+            SpinachBack.__ensure_bit(
+                c, Bit(SpinachBack.DEFAULT_BIT_REGISTER, q.index[0])
+            )
 
     @staticmethod
-    def __ensure_bit(c: Circuit, bit: Union[int, Bit]):
-        """Ensure the bit is in the circuit."""
-        bit_index = bit if isinstance(bit, int) else bit.index[0]
-        if isinstance(bit, Bit) and bit in c.bits:
-            return
-        reg_name = "c"
-        if reg_name not in c.c_registers:
-            c.add_c_register(reg_name, bit_index + 1)
-        else:
-            reg_size = len(c.c_registers[reg_name])
-            if bit_index >= reg_size:
-                c.add_c_register(reg_name, bit_index - reg_size + 1)
+    def __ensure_bit(c: Circuit, b: Union[int, Bit]):
+        """Ensure the bit is in the circuit (no registers yet)."""
+        bit = Bit("d", b) if isinstance(b, int) else b
+        if bit not in c.bits:
+            c.add_bit(bit)
 
     @staticmethod
     def __handle_pipeline(
@@ -249,18 +311,20 @@ class SpinachBack:
         """handle an action statement"""
         if isinstance(action.target, list):
             targets = action.target
-        if isinstance(action.target, str) and action.target == "*":
+        elif isinstance(action.target, str) and action.target == "*":
             targets = list(c.qubits)
         else:
             targets = [action.target]
         for target in targets:
+            print("target", target)
+            print("target type", type(target).__name__)
             match target:
                 case Qubit():
                     targeted_qubit = target
                 case str():
                     targeted_qubit = index[target]
                 case int():
-                    targeted_qubit = Qubit("q", target)
+                    targeted_qubit = Qubit(SpinachBack.DEFAULT_QUBIT_REGISTER, target)
                 case _:
                     raise TypeError(f"Unsupported target type: {type(target).__name__}")
             SpinachBack.__ensure_qubit(c, targeted_qubit)
