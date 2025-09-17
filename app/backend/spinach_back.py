@@ -5,6 +5,7 @@ from pytket import Circuit, Qubit, Bit
 from pytket.qasm import circuit_to_qasm_str
 from pytket.extensions.cirq import tk_to_cirq
 from pytket.extensions.pyquil import tk_to_pyquil
+from typing import Union
 
 from app.spinach_types import (
     GateCall,
@@ -148,6 +149,10 @@ class SpinachBack:
         SpinachBack.__ensure_bit(c, args[0])
         c.Measure(target, args[0])
 
+    def __handle_reset_gate(c: Circuit, target: Qubit, _: list):
+        """reset gate"""
+        c.Reset(target)
+
     @staticmethod
     def __apply_gate(target: Qubit, gate_call: GateCall, c: Circuit, index: dict):
         """apply a gate to a qubit"""
@@ -180,6 +185,8 @@ class SpinachBack:
             "CCX": SpinachBack.__handle_ccx_gate,
             "M": SpinachBack.__handle_measure_gate,
             "MEASURE": SpinachBack.__handle_measure_gate,
+            "RESET": SpinachBack.__handle_reset_gate,
+            "R": SpinachBack.__handle_reset_gate,
         }
         fn = gate_dispatch.get(gate_call.name)
         if fn is None:
@@ -193,30 +200,23 @@ class SpinachBack:
         fn(c, target, number_args)
 
     @staticmethod
-    def __ensure_qubit(c: Circuit, qb):
-        """Add a qubit to the circuit if not already present.
-        If qb is an int, convert it to Qubit first."""
-        if isinstance(qb, int):
-            qb = Qubit("q", qb)
-        if qb not in c.qubits:
-            c.add_qubit(qb)
+    def __ensure_qubit(c: Circuit, qb: Union[int, Qubit]):
+        """Ensure the qubits is in the circuit."""
+        q = Qubit("q", qb) if isinstance(qb, int) else qb
+        if q not in c.qubits:
+            c.add_qubit(q)
+            print("index = " + str(q.index[0]))
+            SpinachBack.__ensure_bit(c, Bit(q.index[0]))
 
     @staticmethod
-    def __ensure_bit(c: Circuit, cb):
-        """
-        Add a bit to the circuit if not already present.
-        If cb is an int, use it as the next index in the 'c' classical register.
-        This will create or extend the register as needed.
-        """
+    def __ensure_bit(c: Circuit, cb: Union[int, Bit]):
+        """Ensure the bits is in the circuit."""
         if isinstance(cb, int):
             bit_index = cb
         elif isinstance(cb, Bit):
             if cb in c.bits:
                 return
-            bit_index = int(cb.name) if cb.name.isdigit() else len(c.bits)
-        else:
-            raise TypeError("cb must be int or Bit")
-
+            bit_index = cb.index[0]
         reg_name = "c"
         if reg_name not in c.c_registers:
             c.add_c_register(reg_name, bit_index + 1)
@@ -251,7 +251,6 @@ class SpinachBack:
         else:
             targets = [action.target]
         for target in targets:
-            print("index" + str(index))
             targeted_qubit = (
                 index[target] if isinstance(target, str) else Qubit("q", target)
             )
