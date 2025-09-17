@@ -1,4 +1,4 @@
-?start: (_NL* statement _NL*)+
+start: (_NL* statement _NL*)+
 
 %import common.WS_INLINE
 %import common.NEWLINE -> _NL
@@ -26,7 +26,7 @@ gate: UPPER_NAME ["(" [args] ")"] -> gate_call
 args: (NAME | NUMBER) ("," (NAME | NUMBER))*
 
 // Actions: q1 -> gate or q1 -> my_instruction
-action: ( NAME | NUMBER | list) "->" [NUMBER] (gate_pip)
+action: ( NAME | NUMBER | list | ALL) "->" [NUMBER] (gate_pip)
 
 // List of names
 list: "[" NAME ("," NAME)* "]"
@@ -36,3 +36,4 @@ NAME: /[a-z][a-zA-Z0-9_]*/
 UPPER_NAME: /[A-Z]+/
 NUMBER: /\d+/
 REVERSE_ARROW: "<-"
+ALL: "*"
