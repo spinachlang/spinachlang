@@ -185,22 +185,45 @@ class SpinachBack:
         if fn is None:
             raise ValueError(f"Unknown gate {gate_call.name!r}")
         number_args = list(
-            map(lambda x: index[x] if isinstance(x, str) else x, gate_call.args)
+            map(
+                lambda x: index[x] if isinstance(x, str) else x,
+                gate_call.args,
+            )
         )
         fn(c, target, number_args)
 
     @staticmethod
-    def __ensure_qubit(c: Circuit, qb: Qubit):
-        """Add a qubit to the circuit if not already present."""
+    def __ensure_qubit(c: Circuit, qb):
+        """Add a qubit to the circuit if not already present.
+        If qb is an int, convert it to Qubit first."""
+        if isinstance(qb, int):
+            qb = Qubit("q", qb)
         if qb not in c.qubits:
-            print("qb = " + str(qb))
             c.add_qubit(qb)
 
     @staticmethod
-    def __ensure_bit(c: Circuit, cb: Bit):
-        """Add a bit to the circuit if not already present."""
-        if cb not in c.bits:
-            c.add_bit(cb)
+    def __ensure_bit(c: Circuit, cb):
+        """
+        Add a bit to the circuit if not already present.
+        If cb is an int, use it as the next index in the 'c' classical register.
+        This will create or extend the register as needed.
+        """
+        if isinstance(cb, int):
+            bit_index = cb
+        elif isinstance(cb, Bit):
+            if cb in c.bits:
+                return
+            bit_index = int(cb.name) if cb.name.isdigit() else len(c.bits)
+        else:
+            raise TypeError("cb must be int or Bit")
+
+        reg_name = "c"
+        if reg_name not in c.c_registers:
+            c.add_c_register(reg_name, bit_index + 1)
+        else:
+            reg_size = len(c.c_registers[reg_name])
+            if bit_index >= reg_size:
+                c.add_c_register(reg_name, bit_index - reg_size + 1)
 
     @staticmethod
     def __handle_pipeline(
@@ -272,8 +295,6 @@ class SpinachBack:
     @staticmethod
     def compile_to_openqasm(circuit: Circuit) -> str:
         """create a qasm code representation of a tket circuit"""
-        print(circuit.qubits)
-        print([type(q) for q in circuit.qubits])
         return circuit_to_qasm_str(circuit)
 
     @staticmethod
