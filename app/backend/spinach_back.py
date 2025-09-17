@@ -1,11 +1,11 @@
 """backend of spinach"""
 
 import json
+from typing import Union
 from pytket import Circuit, Qubit, Bit
 from pytket.qasm import circuit_to_qasm_str
 from pytket.extensions.cirq import tk_to_cirq
 from pytket.extensions.pyquil import tk_to_pyquil
-from typing import Union
 
 from app.spinach_types import (
     GateCall,
@@ -149,6 +149,7 @@ class SpinachBack:
         SpinachBack.__ensure_bit(c, args[0])
         c.Measure(target, args[0])
 
+    @staticmethod
     def __handle_reset_gate(c: Circuit, target: Qubit, _: list):
         """reset gate"""
         c.Reset(target)
@@ -205,18 +206,14 @@ class SpinachBack:
         q = Qubit("q", qb) if isinstance(qb, int) else qb
         if q not in c.qubits:
             c.add_qubit(q)
-            print("index = " + str(q.index[0]))
             SpinachBack.__ensure_bit(c, Bit(q.index[0]))
 
     @staticmethod
-    def __ensure_bit(c: Circuit, cb: Union[int, Bit]):
-        """Ensure the bits is in the circuit."""
-        if isinstance(cb, int):
-            bit_index = cb
-        elif isinstance(cb, Bit):
-            if cb in c.bits:
-                return
-            bit_index = cb.index[0]
+    def __ensure_bit(c: Circuit, bit: Union[int, Bit]):
+        """Ensure the bit is in the circuit."""
+        bit_index = bit if isinstance(bit, int) else bit.index[0]
+        if isinstance(bit, Bit) and bit in c.bits:
+            return
         reg_name = "c"
         if reg_name not in c.c_registers:
             c.add_c_register(reg_name, bit_index + 1)
