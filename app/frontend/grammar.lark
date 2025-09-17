@@ -1,4 +1,4 @@
-?start: (_NL* statement _NL*)+
+start: (_NL* statement _NL*)+
 
 %import common.WS_INLINE
 %import common.NEWLINE -> _NL

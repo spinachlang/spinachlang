@@ -253,6 +253,7 @@ class SpinachBack:
             targets = list(c.qubits)
         else:
             targets = [action.target]
+        print("targets:", targets)
         for target in targets:
             match target:
                 case Qubit():
@@ -287,6 +288,7 @@ class SpinachBack:
         c = Circuit()
         index = {}
         for node in ast_nodes:
+            print("node:", node)
             match node:
                 case QubitDeclaration(name=name, qubit=qubit):
                     index[name] = qubit
