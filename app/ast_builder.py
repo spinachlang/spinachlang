@@ -1,7 +1,7 @@
 """Abstract syntax tree builder"""
 
 from typing import Union, List
-
+from pytket import Qubit, Bit
 from lark import Transformer, v_args
 
 from app.spinach_types import (
@@ -10,6 +10,7 @@ from app.spinach_types import (
     GateCall,
     Action,
     QubitDeclaration,
+    BitDeclaration,
     ListDeclaration,
     InstructionDeclaration,
 )
@@ -50,15 +51,8 @@ class AstBuilder(Transformer):
                 resolved.append(part)
         return resolved
 
-    def name(self, items):
-        """handle name"""
-        return str(items[0])
-
-    def upper_name(self, items):
-        """handle upper name"""
-        return str(items[0])
-
-    def number(self, items):
+    # pylint: disable=invalid-name
+    def NUMBER(self, items):
         """handle number"""
         return int(str(items[0]))
 
@@ -69,7 +63,12 @@ class AstBuilder(Transformer):
     @v_args(inline=True)
     def qubit_declaration(self, name, number):
         """handle qubit declaration"""
-        return QubitDeclaration(name=name, number=number)
+        return QubitDeclaration(name=name, qubit=Qubit("q", number))
+
+    @v_args(inline=True)
+    def bit_declaration(self, name, number):
+        """handle qubit declaration"""
+        return BitDeclaration(name=name, bit=Bit("c", number))
 
     @v_args(inline=True)
     def list_declaration(self, name, lst):
@@ -95,10 +94,7 @@ class AstBuilder(Transformer):
         """handle arguments"""
         res = []
         for it in items:
-            if isinstance(it, (int, str)):
-                res.append(it)
-            else:
-                res.append(it)
+            res.append(it)
         return res
 
     def gate_pip(self, items):

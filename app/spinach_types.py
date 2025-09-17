@@ -2,13 +2,33 @@
 
 from typing import List, Optional, Union
 from pydantic import BaseModel, Field
+from pytket import Qubit, Bit
 
 
 class QubitDeclaration(BaseModel):
     """Association of a qubit number to a name"""
 
     name: str
-    number: int
+    qubit: Qubit
+
+    # pylint: disable=too-few-public-methods
+    class Config:
+        """class config"""
+
+        arbitrary_types_allowed = True
+
+
+class BitDeclaration(BaseModel):
+    """Association of a qubit number to a name"""
+
+    name: str
+    bit: Bit
+
+    # pylint: disable=too-few-public-methods
+    class Config:
+        """class config"""
+
+        arbitrary_types_allowed = True
 
 
 class ListDeclaration(BaseModel):

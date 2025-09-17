@@ -13,7 +13,8 @@ declaration: qubit_declaration
            | list_declaration
            | instruction_declaration
 
-qubit_declaration: NAME ":" NUMBER
+qubit_declaration: NAME ":" "q"? NUMBER
+bit_declaration: NAME ":" "b" NUMBER 
 list_declaration: NAME ":" list
 instruction_declaration: NAME ":" gate_pip
 
