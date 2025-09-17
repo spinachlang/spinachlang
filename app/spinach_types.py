@@ -11,7 +11,10 @@ class QubitDeclaration(BaseModel):
     name: str
     qubit: Qubit
 
+    # pylint: disable=too-few-public-methods
     class Config:
+        """class config"""
+
         arbitrary_types_allowed = True
 
 
@@ -21,7 +24,10 @@ class BitDeclaration(BaseModel):
     name: str
     bit: Bit
 
+    # pylint: disable=too-few-public-methods
     class Config:
+        """class config"""
+
         arbitrary_types_allowed = True
 
 
