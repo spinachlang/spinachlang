@@ -311,11 +311,13 @@ class SpinachBack:
         """handle an action statement"""
         if isinstance(action.target, list):
             targets = action.target
-        if isinstance(action.target, str) and action.target == "*":
+        elif isinstance(action.target, str) and action.target == "*":
             targets = list(c.qubits)
         else:
             targets = [action.target]
         for target in targets:
+            print("target", target)
+            print("target type", type(target).__name__)
             match target:
                 case Qubit():
                     targeted_qubit = target

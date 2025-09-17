@@ -29,7 +29,7 @@ args: (NAME | NUMBER) ("," (NAME | NUMBER))*
 action: ( NAME | NUMBER | list | ALL) "->" [NUMBER] (gate_pip)
 
 // List of names
-list: "[" NAME ("," NAME)* "]"
+list: "[" (NAME | NUMBER) ("," (NAME | NUMBER))* "]"
 
 // Identifiers
 NAME: /[a-z][a-zA-Z0-9_]*/
