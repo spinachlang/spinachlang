@@ -19,9 +19,12 @@ class TestSpinachFront(unittest.TestCase):
         """
         tree = SpinachFront.get_tree(code=code)
         logging.debug("tree: %s", tree.pretty())
-        self.assertEqual(tree.data, "statement")
+        self.assertEqual(tree.data, "start")
 
-        decl = tree.children[0]
+        statement = tree.children[0]
+        self.assertIsInstance(statement, Tree)
+        self.assertEqual(statement.data, "statement")
+        decl = statement.children[0]
         self.assertIsInstance(decl, Tree)
         self.assertEqual(decl.data, "declaration")
 
@@ -42,7 +45,10 @@ class TestSpinachFront(unittest.TestCase):
         """
         tree = SpinachFront.get_tree(code=code)
         logging.debug("tree: %s", tree.pretty())
-        decl = tree.children[0]
+        statement = tree.children[0]
+        self.assertIsInstance(statement, Tree)
+        self.assertEqual(statement.data, "statement")
+        decl = statement.children[0]
         self.assertIsInstance(decl, Tree)
         self.assertEqual(decl.data, "declaration")
 
@@ -68,7 +74,11 @@ class TestSpinachFront(unittest.TestCase):
         """
         tree = SpinachFront.get_tree(code=code)
         logging.debug("tree: %s", tree.pretty())
-        decl = tree.children[0]
+        statement = tree.children[0]
+        self.assertIsInstance(statement, Tree)
+        self.assertEqual(statement.data, "statement")
+
+        decl = statement.children[0]
         self.assertIsInstance(decl, Tree)
         self.assertEqual(decl.data, "declaration")
 
@@ -90,7 +100,10 @@ class TestSpinachFront(unittest.TestCase):
         """
         tree = SpinachFront.get_tree(code=code)
         logging.debug("tree: %s", tree.pretty())
-        decl = tree.children[0]
+        statement = tree.children[0]
+        self.assertIsInstance(statement, Tree)
+        self.assertEqual(statement.data, "statement")
+        decl = statement.children[0]
         self.assertIsInstance(decl, Tree)
         self.assertEqual(decl.data, "declaration")
 
