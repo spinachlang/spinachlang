@@ -1,0 +1,26 @@
+[project]
+name = "spinachlang"
+version = "0.1.2"
+description = "A quantum programming language and compiler."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Cedrick Gauthier", email = "spinachlang@proton.me" }]
+
+dependencies = [
+  "lark==1.2.2",
+  "pytket==2.9.1",
+  "pytyping==0.0.1",
+  "pydantic==2.11.7",
+  "pytket-qiskit==0.71.0",
+  "pytket-cirq==0.40.0",
+  "pytket-pyquil==0.40.0",
+  "pytket-pennylane==0.20.0",
+  "pytket-braket==0.43.0",
+  "pytket-projectq==0.38.0",
+  "pytket-qir==0.24.1",
+  "pathlib==1.0.1",
+  "matplotlib==3.10.6",
+]
+[project.scripts]
+spinachlang = "app.main:main"
