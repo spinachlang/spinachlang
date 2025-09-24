@@ -1,6 +1,5 @@
 [project]
 name = "spinachlang"
-version = "0.1.4"
 description = "A quantum programming language and compiler."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -21,5 +20,6 @@ dependencies = [
   "pytket-qir==0.24.1",
   "pathlib==1.0.1",
 ]
+
 [project.scripts]
 spinachlang = "app.main:main"
