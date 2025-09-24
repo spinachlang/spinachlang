@@ -1,4 +1,4 @@
-from .spinach import creat_circuit
+from app.spinach import Spinach as SpinachLang
 
-__all__ = ["creat_circuit"]
-
+"""This is the package of spinachlang"""
+__all__ = ["SpinachLang"]
