@@ -1,9 +1,6 @@
 name: Pylint
 
 on: [push]
-name: Pylint
-
-on: [push]
 
 jobs:
   build:
@@ -29,4 +26,3 @@ jobs:
 
       - name: Test with pytest
         run: PYTHONPATH=. pytest
-
