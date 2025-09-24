@@ -316,8 +316,6 @@ class SpinachBack:
         else:
             targets = [action.target]
         for target in targets:
-            print("target", target)
-            print("target type", type(target).__name__)
             match target:
                 case Qubit():
                     targeted_qubit = target
