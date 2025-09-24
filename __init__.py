@@ -1,4 +1,12 @@
+"""
+SpinachLang package.
+
+This package provides the Spinach language implementation.
+The main entry point is `SpinachLang`, which can be imported as:
+
+    from app.spinach import SpinachLang
+"""
+
 from app.spinach import Spinach as SpinachLang
 
-"""This is the package of spinachlang"""
 __all__ = ["SpinachLang"]
