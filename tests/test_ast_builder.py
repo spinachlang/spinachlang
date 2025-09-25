@@ -1,11 +1,10 @@
 """Tests for the asp builder behaviour."""
 
-import logging
 import unittest
 
 from lark import Tree
 
-from pytket import Circuit, Qubit, Bit
+from pytket import Qubit, Bit
 
 from app.ast_builder import AstBuilder
 
