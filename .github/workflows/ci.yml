@@ -25,4 +25,4 @@ jobs:
         run: pylint .
 
       - name: Test with pytest
-        run: PYTHONPATH=. pytest -n auto
+        run: PYTHONPATH=. pytest
