@@ -1,7 +1,11 @@
+"""Top-level package for SpinachLang.
+
+Provides Spinach class and helper functions for circuit compilation and TKET integration.
+"""
+
 from .spinach import Spinach
 
-compile = Spinach.compile
+compile_code = Spinach.compile
 create_tket_circuit = Spinach.create_circuit
 
-__all__ = ["compile", "create_tket_circuit", "Spinach"]
-
+__all__ = ["compile_circuit", "create_tket_circuit", "Spinach"]
