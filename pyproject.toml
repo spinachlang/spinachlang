@@ -23,4 +23,4 @@ dependencies = [
 ]
 
 [project.scripts]
-spinachlang = "app.main:main"
+spinachlang = "spinachlang.main:main"

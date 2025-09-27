@@ -6,7 +6,7 @@ from lark import Tree
 
 from pytket import Qubit, Bit
 
-from app.ast_builder import AstBuilder
+from spinachlang.ast_builder import AstBuilder
 
 
 class TestAstBuilder(unittest.TestCase):
