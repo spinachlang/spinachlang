@@ -23,4 +23,7 @@ dependencies = [
 ]
 
 [project.scripts]
-spinachlang = "app.main:main"
+spinachlang = "spinachlang.main:main"
+
+[project.optional-dependencies]
+dev = ["pylint>=3.2.0", "pytest>=8.3.0"]

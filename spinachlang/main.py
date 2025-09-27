@@ -3,8 +3,8 @@
 import sys
 import argparse
 import pathlib
-from app.exit_code import ExitCode
-from app.spinach import Spinach
+from .exit_code import ExitCode
+from .spinach import Spinach
 
 
 def read_code(path: str) -> str:

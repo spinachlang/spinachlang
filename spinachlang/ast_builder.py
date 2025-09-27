@@ -4,7 +4,7 @@ from typing import Union, List
 from pytket import Qubit, Bit
 from lark import Transformer, v_args
 
-from app.spinach_types import (
+from .spinach_types import (
     GatePipeByName,
     GatePipeline,
     GateCall,

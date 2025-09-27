@@ -7,7 +7,7 @@ from pytket import Qubit, Bit
 
 from pytket.circuit import OpType
 
-from app.spinach_types import (
+from spinachlang.spinach_types import (
     QubitDeclaration,
     ListDeclaration,
     BitDeclaration,
@@ -18,7 +18,7 @@ from app.spinach_types import (
     GatePipeline,
 )
 
-from app.backend.spinach_back import SpinachBack
+from spinachlang.backend import Backend
 
 
 class TestCompiler(unittest.TestCase):
@@ -33,7 +33,7 @@ class TestCompiler(unittest.TestCase):
                 instruction=GatePipeline(parts=[GateCall(name="H", args=[])]),
             )
         ]
-        result = SpinachBack.compile_to_circuit(ast)
+        result = Backend.compile_to_circuit(ast)
         commands = result.get_commands()
         self.assertEqual(len(commands), 1)
         cmd = commands[0]
@@ -54,7 +54,7 @@ class TestCompiler(unittest.TestCase):
                 instruction=GatePipeline(parts=[GateCall(name="X", args=[])]),
             ),
         ]
-        result = SpinachBack.compile_to_circuit(ast)
+        result = Backend.compile_to_circuit(ast)
         commands = result.get_commands()
         self.assertEqual(len(commands), 1)
         cmd = commands[0]
@@ -88,7 +88,7 @@ class TestCompiler(unittest.TestCase):
                 ),
             ),
         ]
-        result = SpinachBack.compile_to_circuit(ast)
+        result = Backend.compile_to_circuit(ast)
         commands = result.get_commands()
         self.assertEqual(len(commands), 7)
         self.assertEqual(commands[0].op.type, OpType.Z)
@@ -127,7 +127,7 @@ class TestCompiler(unittest.TestCase):
                 instruction=GatePipeline(parts=[GateCall(name="H", args=[])]),
             ),
         ]
-        result = SpinachBack.compile_to_circuit(ast)
+        result = Backend.compile_to_circuit(ast)
         commands = result.get_commands()
         self.assertEqual(len(commands), 2)
         self.assertEqual(commands[0].op.type, OpType.H)

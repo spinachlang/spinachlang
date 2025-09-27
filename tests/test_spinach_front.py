@@ -5,7 +5,7 @@ import unittest
 
 from lark import Tree
 
-from app.frontend.spinach_front import SpinachFront
+from spinachlang.parser import Parser
 
 
 class TestSpinachFront(unittest.TestCase):
@@ -17,7 +17,7 @@ class TestSpinachFront(unittest.TestCase):
         alice : b 5
 
         """
-        tree = SpinachFront.get_tree(code=code)
+        tree = Parser.get_tree(code=code)
         logging.debug("tree: %s", tree.pretty())
         self.assertEqual(tree.data, "start")
 
@@ -44,7 +44,7 @@ class TestSpinachFront(unittest.TestCase):
         bob : q 2
 
         """
-        tree = SpinachFront.get_tree(code=code)
+        tree = Parser.get_tree(code=code)
         logging.debug("tree: %s", tree.pretty())
         self.assertEqual(tree.data, "start")
 
@@ -71,7 +71,7 @@ class TestSpinachFront(unittest.TestCase):
         tom : 3
 
         """
-        tree = SpinachFront.get_tree(code=code)
+        tree = Parser.get_tree(code=code)
         logging.debug("tree: %s", tree.pretty())
         self.assertEqual(tree.data, "start")
 
@@ -97,7 +97,7 @@ class TestSpinachFront(unittest.TestCase):
         code = """
         o_o : H | name1
         """
-        tree = SpinachFront.get_tree(code=code)
+        tree = Parser.get_tree(code=code)
         logging.debug("tree: %s", tree.pretty())
         statement = tree.children[0]
         self.assertIsInstance(statement, Tree)
@@ -126,7 +126,7 @@ class TestSpinachFront(unittest.TestCase):
         code = """
         o_o : name1 <-
         """
-        tree = SpinachFront.get_tree(code=code)
+        tree = Parser.get_tree(code=code)
         logging.debug("tree: %s", tree.pretty())
         statement = tree.children[0]
         self.assertIsInstance(statement, Tree)
@@ -152,7 +152,7 @@ class TestSpinachFront(unittest.TestCase):
         code = """
         o_o : name1 | H
         """
-        tree = SpinachFront.get_tree(code=code)
+        tree = Parser.get_tree(code=code)
         logging.debug("tree: %s", tree.pretty())
         statement = tree.children[0]
         self.assertIsInstance(statement, Tree)
@@ -181,7 +181,7 @@ class TestSpinachFront(unittest.TestCase):
         code = """
         qlist : [alice, bob, tom]
         """
-        tree = SpinachFront.get_tree(code=code)
+        tree = Parser.get_tree(code=code)
         logging.debug("tree: %s", tree.pretty())
         self.assertEqual(tree.data, "start")
 
@@ -213,7 +213,7 @@ class TestSpinachFront(unittest.TestCase):
         code = """
         qlist : [0, 1, 2]
         """
-        tree = SpinachFront.get_tree(code=code)
+        tree = Parser.get_tree(code=code)
         logging.debug("tree: %s", tree.pretty())
         self.assertEqual(tree.data, "start")
 
@@ -245,7 +245,7 @@ class TestSpinachFront(unittest.TestCase):
         code = """
         o_o -> 2 H | name1
         """
-        tree = SpinachFront.get_tree(code=code)
+        tree = Parser.get_tree(code=code)
         logging.debug("tree: %s", tree.pretty())
         statement = tree.children[0]
         self.assertIsInstance(statement, Tree)
@@ -270,7 +270,7 @@ class TestSpinachFront(unittest.TestCase):
         code = """
         [1, 2, 3] -> H | name1
         """
-        tree = SpinachFront.get_tree(code=code)
+        tree = Parser.get_tree(code=code)
         logging.debug("tree: %s", tree.pretty())
         statement = tree.children[0]
         self.assertIsInstance(statement, Tree)

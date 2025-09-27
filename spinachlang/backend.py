@@ -7,7 +7,7 @@ from pytket.qasm import circuit_to_qasm_str
 from pytket.extensions.cirq import tk_to_cirq
 from pytket.extensions.pyquil import tk_to_pyquil
 
-from app.spinach_types import (
+from .spinach_types import (
     GateCall,
     GatePipeByName,
     GatePipeline,
@@ -19,7 +19,7 @@ from app.spinach_types import (
 )
 
 
-class SpinachBack:
+class Backend:
     """backend of spinach"""
 
     DEFAULT_QUBIT_REGISTER = "q"
@@ -85,9 +85,9 @@ class SpinachBack:
         controller = (
             args[0]
             if isinstance(args[0], Qubit)
-            else Qubit(SpinachBack.DEFAULT_QUBIT_REGISTER, args[0])
+            else Qubit(Backend.DEFAULT_QUBIT_REGISTER, args[0])
         )
-        SpinachBack.__ensure_qubit(c, controller)
+        Backend.__ensure_qubit(c, controller)
         c.CX(controller, target)
 
     @staticmethod
@@ -96,9 +96,9 @@ class SpinachBack:
         controller = (
             args[0]
             if isinstance(args[0], Qubit)
-            else Qubit(SpinachBack.DEFAULT_QUBIT_REGISTER, args[0])
+            else Qubit(Backend.DEFAULT_QUBIT_REGISTER, args[0])
         )
-        SpinachBack.__ensure_qubit(c, controller)
+        Backend.__ensure_qubit(c, controller)
         c.CX(target, controller)
 
     @staticmethod
@@ -107,9 +107,9 @@ class SpinachBack:
         controller = (
             args[0]
             if isinstance(args[0], Qubit)
-            else Qubit(SpinachBack.DEFAULT_BIT_REGISTER, args[0])
+            else Qubit(Backend.DEFAULT_BIT_REGISTER, args[0])
         )
-        SpinachBack.__ensure_qubit(c, controller)
+        Backend.__ensure_qubit(c, controller)
         c.CY(controller, target)
 
     @staticmethod
@@ -118,9 +118,9 @@ class SpinachBack:
         controller = (
             args[0]
             if isinstance(args[0], Qubit)
-            else Qubit(SpinachBack.DEFAULT_QUBIT_REGISTER, args[0])
+            else Qubit(Backend.DEFAULT_QUBIT_REGISTER, args[0])
         )
-        SpinachBack.__ensure_qubit(c, controller)
+        Backend.__ensure_qubit(c, controller)
         c.CY(target, controller)
 
     @staticmethod
@@ -129,9 +129,9 @@ class SpinachBack:
         controller = (
             args[0]
             if isinstance(args[0], Qubit)
-            else Qubit(SpinachBack.DEFAULT_QUBIT_REGISTER, args[0])
+            else Qubit(Backend.DEFAULT_QUBIT_REGISTER, args[0])
         )
-        SpinachBack.__ensure_qubit(c, controller)
+        Backend.__ensure_qubit(c, controller)
         c.CZ(controller, target)
 
     @staticmethod
@@ -140,9 +140,9 @@ class SpinachBack:
         controller = (
             args[0]
             if isinstance(args[0], Qubit)
-            else Qubit(SpinachBack.DEFAULT_QUBIT_REGISTER, args[0])
+            else Qubit(Backend.DEFAULT_QUBIT_REGISTER, args[0])
         )
-        SpinachBack.__ensure_qubit(c, controller)
+        Backend.__ensure_qubit(c, controller)
         c.CZ(target, controller)
 
     @staticmethod
@@ -151,9 +151,9 @@ class SpinachBack:
         controller = (
             args[0]
             if isinstance(args[0], Qubit)
-            else Qubit(SpinachBack.DEFAULT_QUBIT_REGISTER, args[0])
+            else Qubit(Backend.DEFAULT_QUBIT_REGISTER, args[0])
         )
-        SpinachBack.__ensure_qubit(c, controller)
+        Backend.__ensure_qubit(c, controller)
         c.CH(controller, target)
 
     @staticmethod
@@ -162,9 +162,9 @@ class SpinachBack:
         controller = (
             args[0]
             if isinstance(args[0], Qubit)
-            else Qubit(SpinachBack.DEFAULT_QUBIT_REGISTER, args[0])
+            else Qubit(Backend.DEFAULT_QUBIT_REGISTER, args[0])
         )
-        SpinachBack.__ensure_qubit(c, controller)
+        Backend.__ensure_qubit(c, controller)
         c.CH(target, controller)
 
     @staticmethod
@@ -173,9 +173,9 @@ class SpinachBack:
         controller = (
             args[1]
             if isinstance(args[1], Qubit)
-            else Qubit(SpinachBack.DEFAULT_QUBIT_REGISTER, args[1])
+            else Qubit(Backend.DEFAULT_QUBIT_REGISTER, args[1])
         )
-        SpinachBack.__ensure_qubit(c, controller)
+        Backend.__ensure_qubit(c, controller)
         c.CU1(args[0], controller, target)
 
     @staticmethod
@@ -184,9 +184,9 @@ class SpinachBack:
         controller = (
             args[0]
             if isinstance(args[0], Qubit)
-            else Qubit(SpinachBack.DEFAULT_QUBIT_REGISTER, args[0])
+            else Qubit(Backend.DEFAULT_QUBIT_REGISTER, args[0])
         )
-        SpinachBack.__ensure_qubit(c, controller)
+        Backend.__ensure_qubit(c, controller)
         c.SWAP(target, controller)
 
     @staticmethod
@@ -195,29 +195,29 @@ class SpinachBack:
         controller1 = (
             args[0]
             if isinstance(args[0], Qubit)
-            else Qubit(SpinachBack.DEFAULT_QUBIT_REGISTER, args[0])
+            else Qubit(Backend.DEFAULT_QUBIT_REGISTER, args[0])
         )
         controller2 = (
             args[1]
             if isinstance(args[1], Qubit)
-            else Qubit(SpinachBack.DEFAULT_QUBIT_REGISTER, args[1])
+            else Qubit(Backend.DEFAULT_QUBIT_REGISTER, args[1])
         )
-        SpinachBack.__ensure_qubit(c, controller1)
-        SpinachBack.__ensure_qubit(c, controller2)
+        Backend.__ensure_qubit(c, controller1)
+        Backend.__ensure_qubit(c, controller2)
         c.CCX(controller1, controller2, target)
 
     @staticmethod
     def __handle_measure_gate(c: Circuit, target: Qubit, args: list):
         """measure gate"""
         if len(args) < 1:
-            bit = Bit(SpinachBack.DEFAULT_BIT_REGISTER, target.index[0])
+            bit = Bit(Backend.DEFAULT_BIT_REGISTER, target.index[0])
         else:
             bit = (
                 args[0]
                 if isinstance(args[0], Bit)
-                else Bit(SpinachBack.DEFAULT_BIT_REGISTER, args[0])
+                else Bit(Backend.DEFAULT_BIT_REGISTER, args[0])
             )
-        SpinachBack.__ensure_bit(c, bit)
+        Backend.__ensure_bit(c, bit)
         c.Measure(target, bit)
 
     @staticmethod
@@ -229,36 +229,36 @@ class SpinachBack:
     def __apply_gate(target: Qubit, gate_call: GateCall, c: Circuit, index: dict):
         """apply a gate to a qubit"""
         gate_dispatch = {
-            "N": SpinachBack.__handle_x_gate,
-            "X": SpinachBack.__handle_x_gate,
-            "Y": SpinachBack.__handle_y_gate,
-            "Z": SpinachBack.__handle_z_gate,
-            "H": SpinachBack.__handle_h_gate,
-            "S": SpinachBack.__handle_s_gate,
-            "ST": SpinachBack.__handle_sdg_gate,
-            "TT": SpinachBack.__handle_tdg_gate,
-            "T": SpinachBack.__handle_t_gate,
-            "RX": SpinachBack.__handle_rx_gate,
-            "RY": SpinachBack.__handle_ry_gate,
-            "RZ": SpinachBack.__handle_rz_gate,
-            "CNOT": SpinachBack.__handle_cx_gate,
-            "FCNOT": SpinachBack.__handle_fliped_cx_gate,
-            "CX": SpinachBack.__handle_cx_gate,
-            "FCX": SpinachBack.__handle_fliped_cx_gate,
-            "CY": SpinachBack.__handle_cy_gate,
-            "FCY": SpinachBack.__handle_fliped_cy_gate,
-            "CZ": SpinachBack.__handle_cz_gate,
-            "FCZ": SpinachBack.__handle_fliped_cz_gate,
-            "CH": SpinachBack.__handle_ch_gate,
-            "FCH": SpinachBack.__handle_fliped_ch_gate,
-            "CU1": SpinachBack.__handle_cu1_gate,
-            "SWAP": SpinachBack.__handle_swap_gate,
-            "TOFFOLI": SpinachBack.__handle_ccx_gate,
-            "CCX": SpinachBack.__handle_ccx_gate,
-            "M": SpinachBack.__handle_measure_gate,
-            "MEASURE": SpinachBack.__handle_measure_gate,
-            "RESET": SpinachBack.__handle_reset_gate,
-            "R": SpinachBack.__handle_reset_gate,
+            "N": Backend.__handle_x_gate,
+            "X": Backend.__handle_x_gate,
+            "Y": Backend.__handle_y_gate,
+            "Z": Backend.__handle_z_gate,
+            "H": Backend.__handle_h_gate,
+            "S": Backend.__handle_s_gate,
+            "ST": Backend.__handle_sdg_gate,
+            "TT": Backend.__handle_tdg_gate,
+            "T": Backend.__handle_t_gate,
+            "RX": Backend.__handle_rx_gate,
+            "RY": Backend.__handle_ry_gate,
+            "RZ": Backend.__handle_rz_gate,
+            "CNOT": Backend.__handle_cx_gate,
+            "FCNOT": Backend.__handle_fliped_cx_gate,
+            "CX": Backend.__handle_cx_gate,
+            "FCX": Backend.__handle_fliped_cx_gate,
+            "CY": Backend.__handle_cy_gate,
+            "FCY": Backend.__handle_fliped_cy_gate,
+            "CZ": Backend.__handle_cz_gate,
+            "FCZ": Backend.__handle_fliped_cz_gate,
+            "CH": Backend.__handle_ch_gate,
+            "FCH": Backend.__handle_fliped_ch_gate,
+            "CU1": Backend.__handle_cu1_gate,
+            "SWAP": Backend.__handle_swap_gate,
+            "TOFFOLI": Backend.__handle_ccx_gate,
+            "CCX": Backend.__handle_ccx_gate,
+            "M": Backend.__handle_measure_gate,
+            "MEASURE": Backend.__handle_measure_gate,
+            "RESET": Backend.__handle_reset_gate,
+            "R": Backend.__handle_reset_gate,
         }
         fn = gate_dispatch.get(gate_call.name)
         if fn is None:
@@ -274,12 +274,10 @@ class SpinachBack:
     @staticmethod
     def __ensure_qubit(c: Circuit, qb: Union[int, Qubit]):
         """Ensure the qubits is in the circuit."""
-        q = Qubit(SpinachBack.DEFAULT_QUBIT_REGISTER, qb) if isinstance(qb, int) else qb
+        q = Qubit(Backend.DEFAULT_QUBIT_REGISTER, qb) if isinstance(qb, int) else qb
         if q not in c.qubits:
             c.add_qubit(q)
-            SpinachBack.__ensure_bit(
-                c, Bit(SpinachBack.DEFAULT_BIT_REGISTER, q.index[0])
-            )
+            Backend.__ensure_bit(c, Bit(Backend.DEFAULT_BIT_REGISTER, q.index[0]))
 
     @staticmethod
     def __ensure_bit(c: Circuit, b: Union[int, Bit]):
@@ -295,7 +293,7 @@ class SpinachBack:
         """apply a gate pipeline to a qubit"""
         for part in pipeline.parts:
             if isinstance(part, GatePipeByName):
-                SpinachBack.__handle_pipeline(
+                Backend.__handle_pipeline(
                     target=target,
                     pipeline=GatePipeline(parts=index[part.name].parts[::-1])
                     if part.rev
@@ -304,7 +302,7 @@ class SpinachBack:
                     index=index,
                 )
             else:
-                SpinachBack.__apply_gate(target, part, c, index)
+                Backend.__apply_gate(target, part, c, index)
 
     @staticmethod
     def __handle_action(action: Action, c: Circuit, index: dict):
@@ -322,10 +320,10 @@ class SpinachBack:
                 case str():
                     targeted_qubit = index[target]
                 case int():
-                    targeted_qubit = Qubit(SpinachBack.DEFAULT_QUBIT_REGISTER, target)
+                    targeted_qubit = Qubit(Backend.DEFAULT_QUBIT_REGISTER, target)
                 case _:
                     raise TypeError(f"Unsupported target type: {type(target).__name__}")
-            SpinachBack.__ensure_qubit(c, targeted_qubit)
+            Backend.__ensure_qubit(c, targeted_qubit)
             for _ in range(action.count or 1):
                 pipeline = (
                     index[action.instruction]
@@ -341,7 +339,7 @@ class SpinachBack:
                     raise TypeError(
                         f"target is not a qubit (got {type(target).__name__})"
                     )
-                SpinachBack.__handle_pipeline(targeted_qubit, pipeline, c, index)
+                Backend.__handle_pipeline(targeted_qubit, pipeline, c, index)
 
     @staticmethod
     def compile_to_circuit(ast_nodes):
@@ -359,7 +357,7 @@ class SpinachBack:
                 case InstructionDeclaration(name=name, pipeline=pipeline):
                     index[name] = pipeline
                 case Action():
-                    SpinachBack.__handle_action(node, c, index)
+                    Backend.__handle_action(node, c, index)
         return c
 
     @staticmethod
