@@ -9,7 +9,7 @@ class Spinach:
     """The spinach language"""
 
     @staticmethod
-    def creat_circuit(code: str):
+    def create_circuit(code: str):
         """generate a tket circuit from spinach code"""
         built = AstBuilder().transform(Parser.get_tree(code))
         return Backend.compile_to_circuit(built)
@@ -26,4 +26,4 @@ class Spinach:
         if language not in dispatch:
             raise ValueError("language cant be none")
         fn = dispatch.get(language)
-        return fn(Spinach.creat_circuit(code=code))
+        return fn(Spinach.create_circuit(code=code))
