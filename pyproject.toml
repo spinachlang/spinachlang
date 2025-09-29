@@ -1,6 +1,6 @@
 [project]
 name = "spinachlang"
-version = "0.2.1"
+version = "0.2.2"
 description = "A quantum programming language and compiler."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -27,3 +27,6 @@ spinachlang = "spinachlang.main:main"
 
 [project.optional-dependencies]
 dev = ["pylint>=3.2.0", "pytest>=8.3.0"]
+
+[tool.setuptools]
+include-package-data = true
