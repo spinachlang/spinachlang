@@ -1,1 +1,1 @@
-include yourpackage/grammar.lark
+include spinachlang/grammar.lark
