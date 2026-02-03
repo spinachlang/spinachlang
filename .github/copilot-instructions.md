@@ -228,7 +228,7 @@ When suggesting code, ensure:
 - [PyPI Packaging Guide](https://packaging.python.org/)
 
 ## Notes
-- The parser will be rewritten in Rust with lilrpop for performance optimization
+- The parser will be rewritten in Rust with lalrpop for performance optimization
 - Maintain Python 3.10+ compatibility
 - All quantum circuit outputs must be verifiable and correct
 - Performance is important, but correctness and clarity come first
