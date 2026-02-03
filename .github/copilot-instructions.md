@@ -98,7 +98,7 @@ SpinachLang is a quantum programming language compiler that translates Spinach s
 - **Error Handling**: Use `Result` and `?` operator; avoid `.unwrap()` in library code
 - **Borrowing**: Prefer borrowing over cloning; use lifetimes appropriately
 - **Parser Design**:
-  - Use lilrpop for parser generation
+  - Use lalrpop for parser generation
   - Design AST types with `#[derive(Debug, Clone, PartialEq)]`
   - Make AST serializable for Python interop (use PyO3 or similar)
 - **Performance**: Profile before optimizing; use benchmarks
