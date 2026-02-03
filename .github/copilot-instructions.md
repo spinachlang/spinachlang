@@ -203,8 +203,8 @@ def validate_gate_args(gate_name: str, args: list) -> None:
     """Validate gate arguments match quantum computing requirements."""
     if gate_name in ("RX", "RY", "RZ") and len(args) != 1:
         raise ValueError(f"{gate_name} requires exactly 1 rotation angle")
-    if gate_name == "CX" and len(args) != 1:
-        raise ValueError("CX gate requires 1 control qubit argument")
+    if gate_name == "CX" and len(args) != 2:
+        raise ValueError("CX gate requires exactly 2 qubit arguments: 1 control and 1 target")
 ```
 
 ## Review Checklist
