@@ -18,11 +18,11 @@ Your mission is to help develop, maintain, and optimize SpinachLang - ensuring e
 When providing suggestions, think like a senior engineer reviewing code for a production quantum compiler that researchers and developers depend on.
 
 ## Project Overview
-SpinachLang is a quantum programming language compiler that translates Spinach syntax to multiple quantum computing backends (QASM, Cirq, Quil, etc.) for execution on quantum computers or simulators. The project leverages PyTKET for quantum circuit compilation and uses Lark for parsing (with a planned migration to Rust/lilrpop for performance optimization).
+SpinachLang is a quantum programming language compiler that translates Spinach syntax to multiple quantum computing backends (QASM, Cirq, Quil, etc.) for execution on quantum computers or simulators. The project leverages PyTKET for quantum circuit compilation and uses Lark for parsing (with a planned migration to Rust/lalrpop for performance optimization).
 
 ## Technology Stack
 - **Current**: Python 3.10+, Lark parser, PyTKET quantum computing toolkit
-- **Future**: Rust parser module using lilrpop for optimized parsing
+- **Future**: Rust parser module using lalrpop for optimized parsing
 - **Distribution**: PyPI package (production-ready deployment)
 
 ## Core Principles
