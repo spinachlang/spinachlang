@@ -71,3 +71,18 @@ class Action(BaseModel):
     target: Union[str, int, list]
     count: Optional[int] = None
     instruction: Union[GatePipeline, str]
+
+
+class ConditionalAction(BaseModel):
+    """A quantum gate pipeline applied conditionally on a classical bit.
+
+    Maps to TKET's Conditional optype:
+      if_pipeline  fires when condition_bit == 1
+      else_pipeline fires when condition_bit == 0 (omit for if-only form)
+    """
+
+    target: Union[str, int, list]
+    condition_bit: str  # name that resolves to a BitDeclaration in the index
+    if_pipeline: GatePipeline
+    else_pipeline: Optional[GatePipeline] = None
+

@@ -7,33 +7,51 @@ start: (_NL* statement _NL*)+
 
 statement: declaration
          | action
+         | conditional_action
 
 // Declarations
 declaration: qubit_declaration
+           | bit_declaration
            | list_declaration
            | instruction_declaration
 
 qubit_declaration: NAME ":" "q"? NUMBER
-bit_declaration: NAME ":" "b" NUMBER 
+bit_declaration: NAME ":" "b" NUMBER
 list_declaration: NAME ":" list
 instruction_declaration: NAME ":" gate_pip
 
 // Gate pipelines like A | B | my_instruction
 gate_pip: (gate_pipe_by_name | gate) ("|" (gate | gate_pipe_by_name ))*
 gate_pipe_by_name: NAME [REVERSE_ARROW]
-// Allow: GATE, GATE(), GATE(arg, ...) 
+// Allow: GATE, GATE(), GATE(arg, ...)
 gate: UPPER_NAME ["(" [args] ")"] -> gate_call
 args: (NAME | NUMBER) ("," (NAME | NUMBER))*
 
 // Actions: q1 -> gate or q1 -> my_instruction
 action: ( NAME | NUMBER | list | ALL) "->" [NUMBER] (gate_pip)
 
+// Classically conditional actions: q1 -> H if b0  or  q1 -> H if b0 else X
+// Multi-gate branches require parentheses: q1 -> (H | X) if b0 else (Z | Y)
+conditional_action: ( NAME | NUMBER | list | ALL) "->" cond_pip _IF_KW NAME
+                  | ( NAME | NUMBER | list | ALL) "->" cond_pip _IF_KW NAME _ELSE_KW cond_pip
+
+// A pipeline for a conditional branch: single gate, named instruction, or parenthesised multi-gate
+cond_pip: gate
+        | gate_pipe_by_name
+        | "(" gate_pip ")"
+
 // List of names
 list: "[" (NAME | NUMBER) ("," (NAME | NUMBER))* "]"
 
 // Identifiers
+// _IF_KW / _ELSE_KW have priority 2 so they win over NAME (priority 0) in the rare
+// states where both are valid.  In practice the contextual lexer (LALR) already
+// resolves this by only allowing each terminal in the states where it is grammatically
+// valid, so the priority is just a safety net.
 NAME: /[a-z][a-zA-Z0-9_]*/
 UPPER_NAME: /[A-Z]+/
 NUMBER: /\d+/
 REVERSE_ARROW: "<-"
 ALL: "*"
+_IF_KW.2: "if"
+_ELSE_KW.2: "else"

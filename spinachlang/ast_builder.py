@@ -9,6 +9,7 @@ from .spinach_types import (
     GatePipeline,
     GateCall,
     Action,
+    ConditionalAction,
     QubitDeclaration,
     BitDeclaration,
     ListDeclaration,
@@ -117,6 +118,38 @@ class AstBuilder(Transformer):
             target=target,
             count=count,
             instruction=GatePipeline(parts=instruction.parts),
+        )
+
+    def cond_pip(self, items):
+        """Handle a conditional branch pipeline.
+
+        Returns a GatePipeline regardless of whether the source was a single
+        gate, a named instruction, or a parenthesised multi-gate pipeline.
+        """
+        item = items[0]
+        if isinstance(item, GateCall):
+            return GatePipeline(parts=[item])
+        if isinstance(item, GatePipeByName):
+            return GatePipeline(parts=[item])
+        # Already a GatePipeline coming from "(" gate_pip ")"
+        return item
+
+    def conditional_action(self, items):
+        """Handle classically conditional actions.
+
+        Two forms (both with _IF_KW and _ELSE_KW filtered out):
+          if-only:   [target, if_pipeline, bit_name]          (3 items)
+          if/else:   [target, if_pipeline, bit_name, else_pipeline]  (4 items)
+        """
+        target = items[0]
+        if_pipeline = items[1]   # GatePipeline from cond_pip
+        condition_bit = str(items[2])  # NAME token → condition bit name
+        else_pipeline = items[3] if len(items) > 3 else None
+        return ConditionalAction(
+            target=target,
+            condition_bit=condition_bit,
+            if_pipeline=if_pipeline,
+            else_pipeline=else_pipeline,
         )
 
     def declaration(self, items):
