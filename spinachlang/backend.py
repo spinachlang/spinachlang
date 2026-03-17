@@ -1,7 +1,8 @@
 """backend of spinach"""
 
 import json
-from typing import Optional, Union
+from functools import reduce
+from typing import Callable, Optional, Union
 from pytket import Circuit, Qubit, Bit
 from pytket.qasm import circuit_to_qasm_str
 
@@ -18,11 +19,37 @@ from .spinach_types import (
 )
 
 
+def _per_target(fn: Callable) -> Callable:
+    """Lift a single-target handler to the uniform multi-target dispatch interface.
+
+    Every function stored in a dispatch table must have the same signature:
+
+        fn(c: Circuit, targets: list, args: list, cond: Optional[dict]) -> None
+
+    Individual gate handlers are simpler to write as single-target:
+
+        fn(c: Circuit, target, args: list, cond: Optional[dict]) -> None
+
+    _per_target wraps the latter to produce the former, driving the per-element
+    loop here so that handlers never need to think about iteration.
+    Group handlers (BARRIER, MEASURE) are NOT wrapped — they already accept a
+    list and decide for themselves how to map targets to TKET calls.
+    """
+    def wrapped(c: Circuit, targets: list, args: list, cond: Optional[dict] = None) -> None:
+        list(map(lambda target: fn(c, target, args, cond), targets))
+    wrapped.__doc__ = fn.__doc__
+    return wrapped
+
+
 class Backend:
     """backend of spinach"""
 
     DEFAULT_QUBIT_REGISTER = "q"
     DEFAULT_BIT_REGISTER = "c"
+
+    # ── Single-target qubit handlers ──────────────────────────────────────
+    # Signature: fn(c, target: Qubit, args, cond)
+    # Stored in the dispatch table via _per_target().
 
     @staticmethod
     def __handle_x_gate(c: Circuit, target: Qubit, _: list, cond: Optional[dict] = None):
@@ -82,198 +109,238 @@ class Backend:
     @staticmethod
     def __handle_cx_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
         """CX gate"""
-        controller = (
-            args[0]
-            if isinstance(args[0], Qubit)
-            else Qubit(Backend.DEFAULT_QUBIT_REGISTER, args[0])
-        )
+        controller = args[0] if isinstance(args[0], Qubit) else Qubit(Backend.DEFAULT_QUBIT_REGISTER, args[0])
         Backend.__ensure_qubit(c, controller)
         c.CX(controller, target, **(cond or {}))
 
     @staticmethod
     def __handle_fliped_cx_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
         """FCX gate"""
-        controller = (
-            args[0]
-            if isinstance(args[0], Qubit)
-            else Qubit(Backend.DEFAULT_QUBIT_REGISTER, args[0])
-        )
+        controller = args[0] if isinstance(args[0], Qubit) else Qubit(Backend.DEFAULT_QUBIT_REGISTER, args[0])
         Backend.__ensure_qubit(c, controller)
         c.CX(target, controller, **(cond or {}))
 
     @staticmethod
     def __handle_cy_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
         """CY gate"""
-        controller = (
-            args[0]
-            if isinstance(args[0], Qubit)
-            else Qubit(Backend.DEFAULT_BIT_REGISTER, args[0])
-        )
+        controller = args[0] if isinstance(args[0], Qubit) else Qubit(Backend.DEFAULT_BIT_REGISTER, args[0])
         Backend.__ensure_qubit(c, controller)
         c.CY(controller, target, **(cond or {}))
 
     @staticmethod
     def __handle_fliped_cy_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
         """FCY gate"""
-        controller = (
-            args[0]
-            if isinstance(args[0], Qubit)
-            else Qubit(Backend.DEFAULT_QUBIT_REGISTER, args[0])
-        )
+        controller = args[0] if isinstance(args[0], Qubit) else Qubit(Backend.DEFAULT_QUBIT_REGISTER, args[0])
         Backend.__ensure_qubit(c, controller)
         c.CY(target, controller, **(cond or {}))
 
     @staticmethod
     def __handle_cz_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
         """CZ gate"""
-        controller = (
-            args[0]
-            if isinstance(args[0], Qubit)
-            else Qubit(Backend.DEFAULT_QUBIT_REGISTER, args[0])
-        )
+        controller = args[0] if isinstance(args[0], Qubit) else Qubit(Backend.DEFAULT_QUBIT_REGISTER, args[0])
         Backend.__ensure_qubit(c, controller)
         c.CZ(controller, target, **(cond or {}))
 
     @staticmethod
     def __handle_fliped_cz_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
         """FCZ gate"""
-        controller = (
-            args[0]
-            if isinstance(args[0], Qubit)
-            else Qubit(Backend.DEFAULT_QUBIT_REGISTER, args[0])
-        )
+        controller = args[0] if isinstance(args[0], Qubit) else Qubit(Backend.DEFAULT_QUBIT_REGISTER, args[0])
         Backend.__ensure_qubit(c, controller)
         c.CZ(target, controller, **(cond or {}))
 
     @staticmethod
     def __handle_ch_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
         """CH gate"""
-        controller = (
-            args[0]
-            if isinstance(args[0], Qubit)
-            else Qubit(Backend.DEFAULT_QUBIT_REGISTER, args[0])
-        )
+        controller = args[0] if isinstance(args[0], Qubit) else Qubit(Backend.DEFAULT_QUBIT_REGISTER, args[0])
         Backend.__ensure_qubit(c, controller)
         c.CH(controller, target, **(cond or {}))
 
     @staticmethod
     def __handle_fliped_ch_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
         """FCH gate"""
-        controller = (
-            args[0]
-            if isinstance(args[0], Qubit)
-            else Qubit(Backend.DEFAULT_QUBIT_REGISTER, args[0])
-        )
+        controller = args[0] if isinstance(args[0], Qubit) else Qubit(Backend.DEFAULT_QUBIT_REGISTER, args[0])
         Backend.__ensure_qubit(c, controller)
         c.CH(target, controller, **(cond or {}))
 
     @staticmethod
     def __handle_cu1_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
         """CU1 gate"""
-        controller = (
-            args[1]
-            if isinstance(args[1], Qubit)
-            else Qubit(Backend.DEFAULT_QUBIT_REGISTER, args[1])
-        )
+        controller = args[1] if isinstance(args[1], Qubit) else Qubit(Backend.DEFAULT_QUBIT_REGISTER, args[1])
         Backend.__ensure_qubit(c, controller)
         c.CU1(args[0], controller, target, **(cond or {}))
 
     @staticmethod
     def __handle_swap_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
         """SWAP gate"""
-        controller = (
-            args[0]
-            if isinstance(args[0], Qubit)
-            else Qubit(Backend.DEFAULT_QUBIT_REGISTER, args[0])
-        )
+        controller = args[0] if isinstance(args[0], Qubit) else Qubit(Backend.DEFAULT_QUBIT_REGISTER, args[0])
         Backend.__ensure_qubit(c, controller)
         c.SWAP(target, controller, **(cond or {}))
 
     @staticmethod
     def __handle_ccx_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
         """CCX gate"""
-        controller1 = (
-            args[0]
-            if isinstance(args[0], Qubit)
-            else Qubit(Backend.DEFAULT_QUBIT_REGISTER, args[0])
-        )
-        controller2 = (
-            args[1]
-            if isinstance(args[1], Qubit)
-            else Qubit(Backend.DEFAULT_QUBIT_REGISTER, args[1])
-        )
-        Backend.__ensure_qubit(c, controller1)
-        Backend.__ensure_qubit(c, controller2)
-        c.CCX(controller1, controller2, target, **(cond or {}))
-
-    @staticmethod
-    def __handle_measure_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
-        """measure gate"""
-        if len(args) < 1:
-            bit = Bit(Backend.DEFAULT_BIT_REGISTER, target.index[0])
-        else:
-            bit = (
-                args[0]
-                if isinstance(args[0], Bit)
-                else Bit(Backend.DEFAULT_BIT_REGISTER, args[0])
-            )
-        Backend.__ensure_bit(c, bit)
-        c.Measure(target, bit, **(cond or {}))
+        c1 = args[0] if isinstance(args[0], Qubit) else Qubit(Backend.DEFAULT_QUBIT_REGISTER, args[0])
+        c2 = args[1] if isinstance(args[1], Qubit) else Qubit(Backend.DEFAULT_QUBIT_REGISTER, args[1])
+        Backend.__ensure_qubit(c, c1)
+        Backend.__ensure_qubit(c, c2)
+        c.CCX(c1, c2, target, **(cond or {}))
 
     @staticmethod
     def __handle_reset_gate(c: Circuit, target: Qubit, _: list, cond: Optional[dict] = None):
-        """reset gate"""
+        """Reset gate"""
         c.Reset(target, **(cond or {}))
 
+    # ── Group qubit handlers ───────────────────────────────────────────────
+    # Signature: fn(c, targets: list[Qubit], args, cond)
+    # Stored directly in the dispatch table (no _per_target wrapping needed).
+
     @staticmethod
-    def __apply_gate(target: Qubit, gate_call: GateCall, c: Circuit, index: dict, cond: Optional[dict] = None):
-        """apply a gate to a qubit, optionally wrapping it in a classical condition"""
-        gate_dispatch = {
-            "N": Backend.__handle_x_gate,
-            "X": Backend.__handle_x_gate,
-            "Y": Backend.__handle_y_gate,
-            "Z": Backend.__handle_z_gate,
-            "H": Backend.__handle_h_gate,
-            "S": Backend.__handle_s_gate,
-            "ST": Backend.__handle_sdg_gate,
-            "TT": Backend.__handle_tdg_gate,
-            "T": Backend.__handle_t_gate,
-            "RX": Backend.__handle_rx_gate,
-            "RY": Backend.__handle_ry_gate,
-            "RZ": Backend.__handle_rz_gate,
-            "CNOT": Backend.__handle_cx_gate,
-            "FCNOT": Backend.__handle_fliped_cx_gate,
-            "CX": Backend.__handle_cx_gate,
-            "FCX": Backend.__handle_fliped_cx_gate,
-            "CY": Backend.__handle_cy_gate,
-            "FCY": Backend.__handle_fliped_cy_gate,
-            "CZ": Backend.__handle_cz_gate,
-            "FCZ": Backend.__handle_fliped_cz_gate,
-            "CH": Backend.__handle_ch_gate,
-            "FCH": Backend.__handle_fliped_ch_gate,
-            "CU1": Backend.__handle_cu1_gate,
-            "SWAP": Backend.__handle_swap_gate,
-            "TOFFOLI": Backend.__handle_ccx_gate,
-            "CCX": Backend.__handle_ccx_gate,
-            "M": Backend.__handle_measure_gate,
-            "MEASURE": Backend.__handle_measure_gate,
-            "RESET": Backend.__handle_reset_gate,
-            "R": Backend.__handle_reset_gate,
-        }
-        fn = gate_dispatch.get(gate_call.name)
-        if fn is None:
-            raise ValueError(f"Unknown gate {gate_call.name!r}")
-        number_args = list(
-            map(
-                lambda x: index[x] if isinstance(x, str) else x,
-                gate_call.args,
-            )
-        )
-        fn(c, target, number_args, cond=cond)
+    def __handle_barrier_group(c: Circuit, targets: list, args: list, cond: Optional[dict] = None):
+        """BARRIER — one joint barrier across all qubit targets.
+
+        A single c.add_barrier([q0, q1, ...]) is a cross-qubit synchronisation
+        point; N separate single-qubit calls would not carry the same guarantee.
+        """
+        if cond:
+            raise ValueError("BARRIER cannot be used inside a conditional (if/else) branch.")
+        qubit_list = [t for t in targets if isinstance(t, Qubit)]
+        if qubit_list:
+            c.add_barrier(qubit_list)
+
+    @staticmethod
+    def __handle_measure_group(c: Circuit, targets: list, args: list, cond: Optional[dict] = None):
+        """MEASURE applied to a group of qubits.
+
+        Uses c.measure_all() when every circuit qubit is targeted with no
+        explicit destination bit and no condition (the `* -> M` case).
+        Falls back to individual Measure gates otherwise.
+        """
+        qubit_targets = [t for t in targets if isinstance(t, Qubit)]
+        if not qubit_targets:
+            return
+        if not args and not cond and set(qubit_targets) == set(c.qubits):
+            c.measure_all()
+            return
+
+        def _measure_qubit(qubit: Qubit) -> None:
+            bit = args[0] if (args and isinstance(args[0], Bit)) else Bit(Backend.DEFAULT_BIT_REGISTER, qubit.index[0])
+            Backend.__ensure_bit(c, bit)
+            c.Measure(qubit, bit, **(cond or {}))
+
+        list(map(_measure_qubit, qubit_targets))
+
+    @staticmethod
+    def __handle_not_bit(c: Circuit, target: Bit, args: list, cond: Optional[dict] = None):
+        """Classical NOT: target = NOT source  (source defaults to target for in-place)"""
+        if len(args) > 1:
+            raise ValueError("NOT takes 0 or 1 argument: NOT  or  NOT(src_bit)")
+        src = args[0] if args else target
+        if not isinstance(src, Bit):
+            raise ValueError(f"NOT source must be a classical Bit, got {type(src).__name__}")
+        Backend.__ensure_bit(c, src)
+        Backend.__ensure_bit(c, target)
+        c.add_c_not(src, target)
+
+    @staticmethod
+    def __handle_set_bit(c: Circuit, target: Bit, args: list, cond: Optional[dict] = None):
+        """Classical SET: target = 0 or 1"""
+        if len(args) != 1 or not isinstance(args[0], int):
+            raise ValueError("SET requires exactly one integer literal: SET(0) or SET(1)")
+        if args[0] not in (0, 1):
+            raise ValueError(f"SET argument must be 0 or 1, got {args[0]}")
+        Backend.__ensure_bit(c, target)
+        c.add_c_setbits([bool(args[0])], [target])
+
+    @staticmethod
+    def __handle_and_bit(c: Circuit, target: Bit, args: list, cond: Optional[dict] = None):
+        """Classical AND: target = args[0] AND args[1]"""
+        if len(args) != 2 or not all(isinstance(a, Bit) for a in args):
+            raise ValueError("AND requires exactly 2 bit arguments: AND(b0, b1)")
+        b0, b1 = args
+        list(map(lambda b: Backend.__ensure_bit(c, b), [b0, b1, target]))
+        c.add_c_and(b0, b1, target)
+
+    @staticmethod
+    def __handle_or_bit(c: Circuit, target: Bit, args: list, cond: Optional[dict] = None):
+        """Classical OR: target = args[0] OR args[1]"""
+        if len(args) != 2 or not all(isinstance(a, Bit) for a in args):
+            raise ValueError("OR requires exactly 2 bit arguments: OR(b0, b1)")
+        b0, b1 = args
+        list(map(lambda b: Backend.__ensure_bit(c, b), [b0, b1, target]))
+        c.add_c_or(b0, b1, target)
+
+    @staticmethod
+    def __handle_xor_bit(c: Circuit, target: Bit, args: list, cond: Optional[dict] = None):
+        """Classical XOR: target = args[0] XOR args[1]"""
+        if len(args) != 2 or not all(isinstance(a, Bit) for a in args):
+            raise ValueError("XOR requires exactly 2 bit arguments: XOR(b0, b1)")
+        b0, b1 = args
+        list(map(lambda b: Backend.__ensure_bit(c, b), [b0, b1, target]))
+        c.add_c_xor(b0, b1, target)
+
+    @staticmethod
+    def __handle_copy_bit(c: Circuit, target: Bit, args: list, cond: Optional[dict] = None):
+        """Classical COPY: target = args[0]"""
+        if len(args) != 1 or not isinstance(args[0], Bit):
+            raise ValueError("COPY requires exactly 1 bit argument: COPY(src_bit)")
+        src = args[0]
+        Backend.__ensure_bit(c, src)
+        Backend.__ensure_bit(c, target)
+        c.add_c_copybits([src], [target])
+
+    __qubit_dispatch: dict = {
+        # ── Single-qubit ──────────────────────────────────────────────
+        "N":       _per_target(__handle_x_gate),
+        "X":       _per_target(__handle_x_gate),
+        "Y":       _per_target(__handle_y_gate),
+        "Z":       _per_target(__handle_z_gate),
+        "H":       _per_target(__handle_h_gate),
+        "S":       _per_target(__handle_s_gate),
+        "ST":      _per_target(__handle_sdg_gate),
+        "TT":      _per_target(__handle_tdg_gate),
+        "T":       _per_target(__handle_t_gate),
+        "RX":      _per_target(__handle_rx_gate),
+        "RY":      _per_target(__handle_ry_gate),
+        "RZ":      _per_target(__handle_rz_gate),
+        # ── Two-qubit ─────────────────────────────────────────────────
+        "CX":      _per_target(__handle_cx_gate),
+        "CNOT":    _per_target(__handle_cx_gate),
+        "FCX":     _per_target(__handle_fliped_cx_gate),
+        "FCNOT":   _per_target(__handle_fliped_cx_gate),
+        "CY":      _per_target(__handle_cy_gate),
+        "FCY":     _per_target(__handle_fliped_cy_gate),
+        "CZ":      _per_target(__handle_cz_gate),
+        "FCZ":     _per_target(__handle_fliped_cz_gate),
+        "CH":      _per_target(__handle_ch_gate),
+        "FCH":     _per_target(__handle_fliped_ch_gate),
+        "CU1":     _per_target(__handle_cu1_gate),
+        "SWAP":    _per_target(__handle_swap_gate),
+        # ── Three-qubit ───────────────────────────────────────────────
+        "CCX":     _per_target(__handle_ccx_gate),
+        "TOFFOLI": _per_target(__handle_ccx_gate),
+        # ── Lifecycle ─────────────────────────────────────────────────
+        "R":       _per_target(__handle_reset_gate),
+        "RESET":   _per_target(__handle_reset_gate),
+        # ── Group (already list-based, no _per_target wrapping) ───────
+        "M":       __handle_measure_group,
+        "MEASURE": __handle_measure_group,
+        "BARRIER": __handle_barrier_group,
+    }
+
+    __bit_dispatch: dict = {
+        "NOT":  _per_target(__handle_not_bit),
+        "SET":  _per_target(__handle_set_bit),
+        "AND":  _per_target(__handle_and_bit),
+        "OR":   _per_target(__handle_or_bit),
+        "XOR":  _per_target(__handle_xor_bit),
+        "COPY": _per_target(__handle_copy_bit),
+    }
+
+    # ── Circuit utilities ──────────────────────────────────────────────────
 
     @staticmethod
     def __ensure_qubit(c: Circuit, qb: Union[int, Qubit]):
-        """Ensure the qubits is in the circuit."""
+        """Ensure the qubit is in the circuit."""
         q = Qubit(Backend.DEFAULT_QUBIT_REGISTER, qb) if isinstance(qb, int) else qb
         if q not in c.qubits:
             c.add_qubit(q)
@@ -281,76 +348,116 @@ class Backend:
 
     @staticmethod
     def __ensure_bit(c: Circuit, b: Union[int, Bit]):
-        """Ensure the bit is in the circuit (no registers yet)."""
+        """Ensure the bit is in the circuit."""
         bit = Bit("d", b) if isinstance(b, int) else b
         if bit not in c.bits:
             c.add_bit(bit)
 
+    # ── Pipeline execution engine ──────────────────────────────────────────
+
     @staticmethod
-    def __handle_pipeline(
-        target: Qubit, pipeline: GatePipeline, c: Circuit, index: dict,
+    def __execute_pipeline_for_targets(
+        targets: list,
+        pipeline: GatePipeline,
+        c: Circuit,
+        index: dict,
         cond: Optional[dict] = None,
     ):
-        """apply a gate pipeline to a qubit, propagating any classical condition"""
-        for part in pipeline.parts:
+        """Execute a gate pipeline against a resolved list of targets.
+
+        For each gate the engine:
+          1. Looks up the gate name in the qubit dispatch (if there are qubit targets).
+          2. Looks up the gate name in the bit dispatch   (if there are bit targets).
+          3. Pre-checks both lookups — raises before touching the circuit if either
+             target type has no handler for the requested gate.
+          4. Calls each handler: fn(c, targets, args, cond).
+
+        Every entry in both dispatch tables has that same interface, so this
+        function never inspects how the handler works — it just selects and calls.
+        """
+        def _process_part(part) -> None:
             if isinstance(part, GatePipeByName):
-                Backend.__handle_pipeline(
-                    target=target,
-                    pipeline=GatePipeline(parts=index[part.name].parts[::-1])
-                    if part.rev
-                    else index[part.name],
-                    c=c,
-                    index=index,
-                    cond=cond,
+                sub = GatePipeline(
+                    parts=index[part.name].parts[::-1] if part.rev else index[part.name].parts
                 )
-            else:
-                Backend.__apply_gate(target, part, c, index, cond=cond)
+                Backend.__execute_pipeline_for_targets(targets, sub, c, index, cond)
+                return
+
+            qubit_targets = [t for t in targets if isinstance(t, Qubit)]
+            bit_targets   = [t for t in targets if isinstance(t, Bit)]
+
+            # Resolve args once: str names → index values (Qubit/Bit/number)
+            number_args = [index[x] if isinstance(x, str) else x for x in part.args]
+
+            # ── pre-flight lookup (raises before any circuit mutation) ─
+            qubit_fn = Backend.__qubit_dispatch.get(part.name) if qubit_targets else None
+            bit_fn   = Backend.__bit_dispatch.get(part.name)   if bit_targets   else None
+
+            if qubit_targets and qubit_fn is None:
+                raise ValueError(f"Unknown qubit gate {part.name!r}")
+            if bit_targets and bit_fn is None:
+                raise ValueError(
+                    f"Unknown classical bit operation {part.name!r}. "
+                    "Valid: NOT, SET(0/1), AND(b0,b1), OR(b0,b1), XOR(b0,b1), COPY(src)"
+                )
+
+            # ── execute ───────────────────────────────────────────────
+            if qubit_fn:
+                list(map(lambda q: Backend.__ensure_qubit(c, q), qubit_targets))
+                qubit_fn(c, qubit_targets, number_args, cond)
+
+            if bit_fn:
+                bit_fn(c, bit_targets, number_args, cond)
+
+        list(map(_process_part, pipeline.parts))
+
+    @staticmethod
+    def __handle_pipeline(
+        target: Qubit,
+        pipeline: GatePipeline,
+        c: Circuit,
+        index: dict,
+        cond: Optional[dict] = None,
+    ):
+        """Single-target wrapper used by the conditional-action path."""
+        Backend.__execute_pipeline_for_targets([target], pipeline, c, index, cond)
+
+    # ── Action handlers ────────────────────────────────────────────────────
+
+    @staticmethod
+    def __resolve_targets(raw_target, c: Circuit, index: dict) -> list:
+        """Resolve an action target to a flat list of Qubit / Bit objects."""
+        raws = (
+            raw_target if isinstance(raw_target, list)
+            else list(c.qubits) if (isinstance(raw_target, str) and raw_target == "*")
+            else [raw_target]
+        )
+
+        def _resolve_raw(raw) -> Union[Qubit, Bit]:
+            match raw:
+                case Qubit(): return raw
+                case Bit():   return raw
+                case str():   return index[raw]
+                case int():   return Qubit(Backend.DEFAULT_QUBIT_REGISTER, raw)
+                case _: raise TypeError(f"Unsupported target type: {type(raw).__name__}")
+
+        return list(map(_resolve_raw, raws))
 
     @staticmethod
     def __handle_action(action: Action, c: Circuit, index: dict):
-        """handle an action statement"""
-        if isinstance(action.target, list):
-            targets = action.target
-        elif isinstance(action.target, str) and action.target == "*":
-            targets = list(c.qubits)
-        else:
-            targets = [action.target]
-        for target in targets:
-            match target:
-                case Qubit():
-                    targeted_qubit = target
-                case str():
-                    targeted_qubit = index[target]
-                case int():
-                    targeted_qubit = Qubit(Backend.DEFAULT_QUBIT_REGISTER, target)
-                case _:
-                    raise TypeError(f"Unsupported target type: {type(target).__name__}")
-            Backend.__ensure_qubit(c, targeted_qubit)
-            for _ in range(action.count or 1):
-                pipeline = (
-                    index[action.instruction]
-                    if isinstance(action.instruction, str)
-                    else action.instruction
-                )
-                if not isinstance(pipeline, GatePipeline):
-                    raise TypeError(
-                        f"pipeline is not a GatePipeline (got {type(pipeline).__name__})"
-                    )
-                if not isinstance(targeted_qubit, Qubit):
-                    raise TypeError(
-                        f"target is not a qubit (got {type(target).__name__})"
-                    )
-                Backend.__handle_pipeline(targeted_qubit, pipeline, c, index)
+        """Handle an unconditional action — resolve targets, resolve pipeline, execute."""
+        targets = Backend.__resolve_targets(action.target, c, index)
+        pipeline = index[action.instruction] if isinstance(action.instruction, str) else action.instruction
+        if not isinstance(pipeline, GatePipeline):
+            raise TypeError(f"pipeline is not a GatePipeline (got {type(pipeline).__name__})")
+        list(map(
+            lambda _: Backend.__execute_pipeline_for_targets(targets, pipeline, c, index),
+            range(action.count or 1),
+        ))
 
     @staticmethod
     def __handle_conditional_action(action: ConditionalAction, c: Circuit, index: dict):
-        """Handle a classically conditioned action.
-
-        Each gate in the if_pipeline is emitted with condition_value=1 (fires
-        when the bit is set).  Each gate in the optional else_pipeline is
-        emitted with condition_value=0 (fires when the bit is clear).
-        Both translate to TKET's Conditional optype.
-        """
+        """Handle a classically conditioned action (if / if-else)."""
         condition_bit = index.get(action.condition_bit)
         if condition_bit is None:
             raise ValueError(
@@ -360,54 +467,30 @@ class Backend:
         if not isinstance(condition_bit, Bit):
             raise ValueError(
                 f"'{action.condition_bit}' is not a classical Bit "
-                f"(got {type(condition_bit).__name__}). "
-                "Only declared bits can be used as conditions."
+                f"(got {type(condition_bit).__name__})."
             )
-
         Backend.__ensure_bit(c, condition_bit)
+        targets = Backend.__resolve_targets(action.target, c, index)
 
-        # Resolve targets — same logic as __handle_action
-        if isinstance(action.target, list):
-            targets = action.target
-        elif isinstance(action.target, str) and action.target == "*":
-            targets = list(c.qubits)
-        else:
-            targets = [action.target]
-
-        for target in targets:
-            match target:
-                case Qubit():
-                    targeted_qubit = target
-                case str():
-                    targeted_qubit = index[target]
-                case int():
-                    targeted_qubit = Qubit(Backend.DEFAULT_QUBIT_REGISTER, target)
-                case _:
-                    raise TypeError(f"Unsupported target type: {type(target).__name__}")
-
-            Backend.__ensure_qubit(c, targeted_qubit)
-
-            if not isinstance(targeted_qubit, Qubit):
-                raise TypeError(
-                    f"Conditional action target is not a Qubit "
-                    f"(got {type(targeted_qubit).__name__})"
-                )
-
-            # if-branch: fires when condition_bit == 1
-            if_cond = {"condition_bits": [condition_bit], "condition_value": 1}
-            Backend.__handle_pipeline(targeted_qubit, action.if_pipeline, c, index, cond=if_cond)
-
-            # else-branch: fires when condition_bit == 0
+        def _handle_target(target: Qubit) -> None:
+            if not isinstance(target, Qubit):
+                raise TypeError(f"Conditional action target is not a Qubit (got {type(target).__name__})")
+            Backend.__ensure_qubit(c, target)
+            Backend.__handle_pipeline(target, action.if_pipeline, c, index,
+                                       cond={"condition_bits": [condition_bit], "condition_value": 1})
             if action.else_pipeline is not None:
-                else_cond = {"condition_bits": [condition_bit], "condition_value": 0}
-                Backend.__handle_pipeline(targeted_qubit, action.else_pipeline, c, index, cond=else_cond)
+                Backend.__handle_pipeline(target, action.else_pipeline, c, index,
+                                           cond={"condition_bits": [condition_bit], "condition_value": 0})
+
+        list(map(_handle_target, targets))
+
+    # ── Public API ─────────────────────────────────────────────────────────
 
     @staticmethod
     def compile_to_circuit(ast_nodes):
         """generate a tket circuit from ast nodes"""
-        c = Circuit()
-        index = {}
-        for node in ast_nodes:
+        def _process_node(acc: tuple, node) -> tuple:
+            c, index = acc
             match node:
                 case QubitDeclaration(name=name, qubit=qubit):
                     index[name] = qubit
@@ -421,6 +504,9 @@ class Backend:
                     Backend.__handle_action(node, c, index)
                 case ConditionalAction():
                     Backend.__handle_conditional_action(node, c, index)
+            return c, index
+
+        c, _ = reduce(_process_node, ast_nodes, (Circuit(), {}))
         return c
 
     @staticmethod
