@@ -49,8 +49,12 @@ list: "[" (NAME | NUMBER) ("," (NAME | NUMBER))* "]"
 // resolves this by only allowing each terminal in the states where it is grammatically
 // valid, so the priority is just a safety net.
 NAME: /[a-z][a-zA-Z0-9_]*/
-UPPER_NAME: /[A-Z]+/
-NUMBER: /\d+/
+// UPPER_NAME allows digits after the first letter so gate names like TK1, TK2,
+// U1, U2, U3, CRX, ISWAPMAX etc. are valid tokens.
+UPPER_NAME: /[A-Z][A-Z0-9]*/
+// NUMBER accepts integers (0, 1, 42) and decimals (0.5, 3.14) so that rotation
+// angles expressed in half-turns can be given as literals in gate arguments.
+NUMBER: /\d+(\.\d+)?/
 REVERSE_ARROW: "<-"
 ALL: "*"
 _IF_KW.2: "if"

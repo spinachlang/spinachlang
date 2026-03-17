@@ -123,7 +123,7 @@ class Backend:
     @staticmethod
     def __handle_cy_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
         """CY gate"""
-        controller = args[0] if isinstance(args[0], Qubit) else Qubit(Backend.DEFAULT_BIT_REGISTER, args[0])
+        controller = args[0] if isinstance(args[0], Qubit) else Qubit(Backend.DEFAULT_QUBIT_REGISTER, args[0])
         Backend.__ensure_qubit(c, controller)
         c.CY(controller, target, **(cond or {}))
 
@@ -189,6 +189,277 @@ class Backend:
     def __handle_reset_gate(c: Circuit, target: Qubit, _: list, cond: Optional[dict] = None):
         """Reset gate"""
         c.Reset(target, **(cond or {}))
+
+    # ── New 1-qubit gates ─────────────────────────────────────────────────
+
+    @staticmethod
+    def __handle_sx_gate(c: Circuit, target: Qubit, _: list, cond: Optional[dict] = None):
+        """√X gate"""
+        c.SX(target, **(cond or {}))
+
+    @staticmethod
+    def __handle_sxdg_gate(c: Circuit, target: Qubit, _: list, cond: Optional[dict] = None):
+        """√X† gate"""
+        c.SXdg(target, **(cond or {}))
+
+    @staticmethod
+    def __handle_v_gate(c: Circuit, target: Qubit, _: list, cond: Optional[dict] = None):
+        """V gate (≡ √X in TKET convention)"""
+        c.V(target, **(cond or {}))
+
+    @staticmethod
+    def __handle_vdg_gate(c: Circuit, target: Qubit, _: list, cond: Optional[dict] = None):
+        """V† gate"""
+        c.Vdg(target, **(cond or {}))
+
+    @staticmethod
+    def __handle_u1_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
+        """IBM U1(λ) gate — diagonal single-qubit; 1 angle in half-turns."""
+        if len(args) < 1:
+            raise ValueError("U1 requires exactly 1 angle argument: U1(λ)")
+        c.U1(args[0], target, **(cond or {}))
+
+    @staticmethod
+    def __handle_u2_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
+        """IBM U2(φ, λ) gate — 2 angles in half-turns."""
+        if len(args) < 2:
+            raise ValueError("U2 requires exactly 2 angle arguments: U2(φ, λ)")
+        c.U2(args[0], args[1], target, **(cond or {}))
+
+    @staticmethod
+    def __handle_u3_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
+        """IBM U3(θ, φ, λ) gate — full SU(2); 3 angles in half-turns."""
+        if len(args) < 3:
+            raise ValueError("U3 requires exactly 3 angle arguments: U3(θ, φ, λ)")
+        c.U3(args[0], args[1], args[2], target, **(cond or {}))
+
+    @staticmethod
+    def __handle_tk1_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
+        """TKET TK1(α, β, γ) Euler decomposition; 3 angles in half-turns."""
+        if len(args) < 3:
+            raise ValueError("TK1 requires exactly 3 angle arguments: TK1(α, β, γ)")
+        c.TK1(args[0], args[1], args[2], target, **(cond or {}))
+
+    @staticmethod
+    def __handle_phasedx_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
+        """PhasedX(exponent, phase) — X rotation around a phase-shifted axis; 2 angles in half-turns."""
+        if len(args) < 2:
+            raise ValueError("PX / PHASEDX requires exactly 2 arguments: PX(exponent, phase)")
+        c.PhasedX(args[0], args[1], target, **(cond or {}))
+
+    # ── New 2-qubit gates ─────────────────────────────────────────────────
+
+    @staticmethod
+    def __handle_crx_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
+        """Controlled-Rx gate: CRX(angle, ctrl) — 1 angle + control qubit."""
+        if len(args) < 2:
+            raise ValueError("CRX requires 2 arguments: CRX(angle, ctrl)")
+        ctrl = args[1] if isinstance(args[1], Qubit) else Qubit(Backend.DEFAULT_QUBIT_REGISTER, args[1])
+        Backend.__ensure_qubit(c, ctrl)
+        c.CRx(args[0], ctrl, target, **(cond or {}))
+
+    @staticmethod
+    def __handle_cry_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
+        """Controlled-Ry gate: CRY(angle, ctrl) — 1 angle + control qubit."""
+        if len(args) < 2:
+            raise ValueError("CRY requires 2 arguments: CRY(angle, ctrl)")
+        ctrl = args[1] if isinstance(args[1], Qubit) else Qubit(Backend.DEFAULT_QUBIT_REGISTER, args[1])
+        Backend.__ensure_qubit(c, ctrl)
+        c.CRy(args[0], ctrl, target, **(cond or {}))
+
+    @staticmethod
+    def __handle_crz_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
+        """Controlled-Rz gate: CRZ(angle, ctrl) — 1 angle + control qubit."""
+        if len(args) < 2:
+            raise ValueError("CRZ requires 2 arguments: CRZ(angle, ctrl)")
+        ctrl = args[1] if isinstance(args[1], Qubit) else Qubit(Backend.DEFAULT_QUBIT_REGISTER, args[1])
+        Backend.__ensure_qubit(c, ctrl)
+        c.CRz(args[0], ctrl, target, **(cond or {}))
+
+    @staticmethod
+    def __handle_ecr_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
+        """Echoed Cross-Resonance gate: ECR(ctrl)."""
+        if len(args) < 1:
+            raise ValueError("ECR requires 1 argument: ECR(ctrl)")
+        ctrl = args[0] if isinstance(args[0], Qubit) else Qubit(Backend.DEFAULT_QUBIT_REGISTER, args[0])
+        Backend.__ensure_qubit(c, ctrl)
+        c.ECR(ctrl, target, **(cond or {}))
+
+    @staticmethod
+    def __handle_iswap_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
+        """iSWAP gate: ISWAP(angle, other) — angle in half-turns."""
+        if len(args) < 2:
+            raise ValueError("ISWAP requires 2 arguments: ISWAP(angle, other)")
+        other = args[1] if isinstance(args[1], Qubit) else Qubit(Backend.DEFAULT_QUBIT_REGISTER, args[1])
+        Backend.__ensure_qubit(c, other)
+        c.ISWAP(args[0], target, other, **(cond or {}))
+
+    @staticmethod
+    def __handle_iswapmax_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
+        """Maximal iSWAP gate (≡ ISWAP(1)): ISWAPMAX(other)."""
+        if len(args) < 1:
+            raise ValueError("ISWAPMAX requires 1 argument: ISWAPMAX(other)")
+        other = args[0] if isinstance(args[0], Qubit) else Qubit(Backend.DEFAULT_QUBIT_REGISTER, args[0])
+        Backend.__ensure_qubit(c, other)
+        c.ISWAPMax(target, other, **(cond or {}))
+
+    @staticmethod
+    def __handle_zzmax_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
+        """ZZMax gate (≡ ZZPhase(½)): ZZMAX(other)."""
+        if len(args) < 1:
+            raise ValueError("ZZMAX requires 1 argument: ZZMAX(other)")
+        other = args[0] if isinstance(args[0], Qubit) else Qubit(Backend.DEFAULT_QUBIT_REGISTER, args[0])
+        Backend.__ensure_qubit(c, other)
+        c.ZZMax(target, other, **(cond or {}))
+
+    @staticmethod
+    def __handle_zzphase_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
+        """ZZPhase(angle, other) — e^{-i·angle·π/2 ZZ}; angle in half-turns."""
+        if len(args) < 2:
+            raise ValueError("ZZPH requires 2 arguments: ZZPH(angle, other)")
+        other = args[1] if isinstance(args[1], Qubit) else Qubit(Backend.DEFAULT_QUBIT_REGISTER, args[1])
+        Backend.__ensure_qubit(c, other)
+        c.ZZPhase(args[0], target, other, **(cond or {}))
+
+    @staticmethod
+    def __handle_xxphase_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
+        """XXPhase(angle, other) — e^{-i·angle·π/2 XX}; angle in half-turns."""
+        if len(args) < 2:
+            raise ValueError("XXPH requires 2 arguments: XXPH(angle, other)")
+        other = args[1] if isinstance(args[1], Qubit) else Qubit(Backend.DEFAULT_QUBIT_REGISTER, args[1])
+        Backend.__ensure_qubit(c, other)
+        c.XXPhase(args[0], target, other, **(cond or {}))
+
+    @staticmethod
+    def __handle_yyphase_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
+        """YYPhase(angle, other) — e^{-i·angle·π/2 YY}; angle in half-turns."""
+        if len(args) < 2:
+            raise ValueError("YYPH requires 2 arguments: YYPH(angle, other)")
+        other = args[1] if isinstance(args[1], Qubit) else Qubit(Backend.DEFAULT_QUBIT_REGISTER, args[1])
+        Backend.__ensure_qubit(c, other)
+        c.YYPhase(args[0], target, other, **(cond or {}))
+
+    @staticmethod
+    def __handle_fsim_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
+        """Fermionic Simulation gate: FSIM(θ, φ, other) — 2 angles + partner qubit."""
+        if len(args) < 3:
+            raise ValueError("FSIM requires 3 arguments: FSIM(θ, φ, other)")
+        other = args[2] if isinstance(args[2], Qubit) else Qubit(Backend.DEFAULT_QUBIT_REGISTER, args[2])
+        Backend.__ensure_qubit(c, other)
+        c.FSim(args[0], args[1], target, other, **(cond or {}))
+
+    @staticmethod
+    def __handle_tk2_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
+        """TKET TK2(a, b, c, other) — canonical 2-qubit interaction; 3 angles + partner qubit."""
+        if len(args) < 4:
+            raise ValueError("TK2 requires 4 arguments: TK2(a, b, c, other)")
+        other = args[3] if isinstance(args[3], Qubit) else Qubit(Backend.DEFAULT_QUBIT_REGISTER, args[3])
+        Backend.__ensure_qubit(c, other)
+        c.TK2(args[0], args[1], args[2], target, other, **(cond or {}))
+
+    @staticmethod
+    def __handle_phiswap_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
+        """PhasedISWAP gate: PHISWAP(p, t, other) — 2 angles + partner qubit."""
+        if len(args) < 3:
+            raise ValueError("PHISWAP requires 3 arguments: PHISWAP(p, t, other)")
+        other = args[2] if isinstance(args[2], Qubit) else Qubit(Backend.DEFAULT_QUBIT_REGISTER, args[2])
+        Backend.__ensure_qubit(c, other)
+        c.PhasedISWAP(args[0], args[1], target, other, **(cond or {}))
+
+    # ── New 3-qubit gates ─────────────────────────────────────────────────
+
+    @staticmethod
+    def __handle_cswap_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
+        """CSWAP / Fredkin gate: CSWAP(ctrl, other) — swaps target↔other when ctrl=|1⟩."""
+        if len(args) < 2:
+            raise ValueError("CSWAP / FREDKIN requires 2 arguments: CSWAP(ctrl, other)")
+        ctrl  = args[0] if isinstance(args[0], Qubit) else Qubit(Backend.DEFAULT_QUBIT_REGISTER, args[0])
+        other = args[1] if isinstance(args[1], Qubit) else Qubit(Backend.DEFAULT_QUBIT_REGISTER, args[1])
+        Backend.__ensure_qubit(c, ctrl)
+        Backend.__ensure_qubit(c, other)
+        c.CSWAP(ctrl, target, other, **(cond or {}))
+
+    @staticmethod
+    def __handle_xxphase3_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
+        """3-qubit XXPhase3(angle, q1, q2) — simultaneous XX interactions on all pairs."""
+        if len(args) < 3:
+            raise ValueError("XXP3 requires 3 arguments: XXP3(angle, q1, q2)")
+        q1 = args[1] if isinstance(args[1], Qubit) else Qubit(Backend.DEFAULT_QUBIT_REGISTER, args[1])
+        q2 = args[2] if isinstance(args[2], Qubit) else Qubit(Backend.DEFAULT_QUBIT_REGISTER, args[2])
+        Backend.__ensure_qubit(c, q1)
+        Backend.__ensure_qubit(c, q2)
+        c.XXPhase3(args[0], target, q1, q2, **(cond or {}))
+
+    # ── New group handlers ────────────────────────────────────────────────
+
+    @staticmethod
+    def __handle_phase_group(c: Circuit, targets: list, args: list, cond: Optional[dict] = None):
+        """PHASE(angle) — adds a global phase of angle × π to the whole circuit.
+
+        The target qubit is accepted for syntactic consistency but is ignored:
+        global phase is a scalar property of the circuit, not tied to any qubit.
+        Raises if used inside a classical conditional branch (not meaningful there).
+        """
+        if not args:
+            raise ValueError("PHASE requires one angle argument in half-turns: PHASE(angle)")
+        if cond:
+            raise ValueError(
+                "PHASE (global phase) cannot be used inside a conditional branch — "
+                "global phase has no physical observable effect when conditioned."
+            )
+        c.add_phase(args[0])
+
+    @staticmethod
+    def __handle_circbox_group(c: Circuit, targets: list, args: list, cond: Optional[dict] = None):
+        """CIRCBOX(instruction) — compiles a named instruction pipeline into a CircBox sub-circuit.
+
+        Usage:  [q0, q1] -> CIRCBOX(bell_prep)
+
+        The named instruction is compiled into a fresh n-qubit sub-circuit
+        (where n = number of qubit targets) with abstract qubits q[0]..q[n-1].
+        Integer qubit references inside the pipeline (e.g. CX(1)) map directly
+        to the corresponding abstract qubit in the box.  The targets supplied
+        here define how those abstract qubits map back to the parent circuit.
+
+        Limitations:
+          - Named qubit references from the parent scope inside the pipeline
+            are not remapped; they must not exceed the sub-circuit qubit count.
+          - Conditional CIRCBOX is not supported.
+        """
+        from pytket.circuit import CircBox  # pylint: disable=import-outside-toplevel
+        if not args:
+            raise ValueError(
+                "CIRCBOX requires one argument: the name of a declared instruction pipeline. "
+                "Example:  [q0, q1] -> CIRCBOX(bell_prep)"
+            )
+        pipeline = args[0]
+        if not isinstance(pipeline, GatePipeline):
+            raise ValueError(
+                f"CIRCBOX argument must resolve to a named instruction pipeline, "
+                f"got {type(pipeline).__name__}. "
+                "Declare it first as 'name : gate | pipeline'."
+            )
+        if cond:
+            raise ValueError("CIRCBOX cannot be used inside a conditional branch.")
+
+        qubit_targets = [t for t in targets if isinstance(t, Qubit)]
+        n_qubits = len(qubit_targets)
+        if n_qubits < 1:
+            raise ValueError("CIRCBOX requires at least one qubit target.")
+
+        # Build a fresh sub-circuit with abstract qubits q[0]..q[n_qubits-1].
+        sub = Circuit(n_qubits)
+        sub_index: dict = {i: Qubit(Backend.DEFAULT_QUBIT_REGISTER, i) for i in range(n_qubits)}
+
+        # Compile the pipeline into the sub-circuit targeting sub qubit 0.
+        # Integer args such as CX(1) reference sub qubit 1, which maps to
+        # targets[1] in the parent circuit via add_circbox ordering.
+        first_sub_qubit = Qubit(Backend.DEFAULT_QUBIT_REGISTER, 0)
+        Backend.__execute_pipeline_for_targets([first_sub_qubit], pipeline, sub, sub_index)
+
+        box = CircBox(sub)
+        list(map(lambda q: Backend.__ensure_qubit(c, q), qubit_targets))
+        c.add_circbox(box, qubit_targets)
 
     # ── Group qubit handlers ───────────────────────────────────────────────
     # Signature: fn(c, targets: list[Qubit], args, cond)
@@ -290,41 +561,78 @@ class Backend:
 
     __qubit_dispatch: dict = {
         # ── Single-qubit ──────────────────────────────────────────────
-        "N":       _per_target(__handle_x_gate),
-        "X":       _per_target(__handle_x_gate),
-        "Y":       _per_target(__handle_y_gate),
-        "Z":       _per_target(__handle_z_gate),
-        "H":       _per_target(__handle_h_gate),
-        "S":       _per_target(__handle_s_gate),
-        "ST":      _per_target(__handle_sdg_gate),
-        "TT":      _per_target(__handle_tdg_gate),
-        "T":       _per_target(__handle_t_gate),
-        "RX":      _per_target(__handle_rx_gate),
-        "RY":      _per_target(__handle_ry_gate),
-        "RZ":      _per_target(__handle_rz_gate),
+        "N":        _per_target(__handle_x_gate),
+        "X":        _per_target(__handle_x_gate),
+        "Y":        _per_target(__handle_y_gate),
+        "Z":        _per_target(__handle_z_gate),
+        "H":        _per_target(__handle_h_gate),
+        "S":        _per_target(__handle_s_gate),
+        "ST":       _per_target(__handle_sdg_gate),
+        "TT":       _per_target(__handle_tdg_gate),
+        "T":        _per_target(__handle_t_gate),
+        "RX":       _per_target(__handle_rx_gate),
+        "RY":       _per_target(__handle_ry_gate),
+        "RZ":       _per_target(__handle_rz_gate),
+        # √X family
+        "SX":       _per_target(__handle_sx_gate),
+        "SXDG":     _per_target(__handle_sxdg_gate),
+        "V":        _per_target(__handle_v_gate),
+        "VDG":      _per_target(__handle_vdg_gate),
+        # IBM universal gates
+        "U1":       _per_target(__handle_u1_gate),
+        "U2":       _per_target(__handle_u2_gate),
+        "U3":       _per_target(__handle_u3_gate),
+        # TKET native
+        "TK1":      _per_target(__handle_tk1_gate),
+        # Phased gates
+        "PX":       _per_target(__handle_phasedx_gate),
+        "PHASEDX":  _per_target(__handle_phasedx_gate),
         # ── Two-qubit ─────────────────────────────────────────────────
-        "CX":      _per_target(__handle_cx_gate),
-        "CNOT":    _per_target(__handle_cx_gate),
-        "FCX":     _per_target(__handle_fliped_cx_gate),
-        "FCNOT":   _per_target(__handle_fliped_cx_gate),
-        "CY":      _per_target(__handle_cy_gate),
-        "FCY":     _per_target(__handle_fliped_cy_gate),
-        "CZ":      _per_target(__handle_cz_gate),
-        "FCZ":     _per_target(__handle_fliped_cz_gate),
-        "CH":      _per_target(__handle_ch_gate),
-        "FCH":     _per_target(__handle_fliped_ch_gate),
-        "CU1":     _per_target(__handle_cu1_gate),
-        "SWAP":    _per_target(__handle_swap_gate),
+        "CX":       _per_target(__handle_cx_gate),
+        "CNOT":     _per_target(__handle_cx_gate),
+        "FCX":      _per_target(__handle_fliped_cx_gate),
+        "FCNOT":    _per_target(__handle_fliped_cx_gate),
+        "CY":       _per_target(__handle_cy_gate),
+        "FCY":      _per_target(__handle_fliped_cy_gate),
+        "CZ":       _per_target(__handle_cz_gate),
+        "FCZ":      _per_target(__handle_fliped_cz_gate),
+        "CH":       _per_target(__handle_ch_gate),
+        "FCH":      _per_target(__handle_fliped_ch_gate),
+        "CU1":      _per_target(__handle_cu1_gate),
+        "SWAP":     _per_target(__handle_swap_gate),
+        # Controlled-rotation family
+        "CRX":      _per_target(__handle_crx_gate),
+        "CRY":      _per_target(__handle_cry_gate),
+        "CRZ":      _per_target(__handle_crz_gate),
+        # Cross-resonance
+        "ECR":      _per_target(__handle_ecr_gate),
+        # iSWAP family
+        "ISWAP":    _per_target(__handle_iswap_gate),
+        "ISWAPMAX": _per_target(__handle_iswapmax_gate),
+        # ZZ / XX / YY interaction family
+        "ZZMAX":    _per_target(__handle_zzmax_gate),
+        "ZZPH":     _per_target(__handle_zzphase_gate),
+        "XXPH":     _per_target(__handle_xxphase_gate),
+        "YYPH":     _per_target(__handle_yyphase_gate),
+        # Parametric 2-qubit
+        "FSIM":     _per_target(__handle_fsim_gate),
+        "TK2":      _per_target(__handle_tk2_gate),
+        "PHISWAP":  _per_target(__handle_phiswap_gate),
         # ── Three-qubit ───────────────────────────────────────────────
-        "CCX":     _per_target(__handle_ccx_gate),
-        "TOFFOLI": _per_target(__handle_ccx_gate),
+        "CCX":      _per_target(__handle_ccx_gate),
+        "TOFFOLI":  _per_target(__handle_ccx_gate),
+        "CSWAP":    _per_target(__handle_cswap_gate),
+        "FREDKIN":  _per_target(__handle_cswap_gate),
+        "XXP3":     _per_target(__handle_xxphase3_gate),
         # ── Lifecycle ─────────────────────────────────────────────────
-        "R":       _per_target(__handle_reset_gate),
-        "RESET":   _per_target(__handle_reset_gate),
+        "R":        _per_target(__handle_reset_gate),
+        "RESET":    _per_target(__handle_reset_gate),
         # ── Group (already list-based, no _per_target wrapping) ───────
-        "M":       __handle_measure_group,
-        "MEASURE": __handle_measure_group,
-        "BARRIER": __handle_barrier_group,
+        "M":        __handle_measure_group,
+        "MEASURE":  __handle_measure_group,
+        "BARRIER":  __handle_barrier_group,
+        "PHASE":    __handle_phase_group,
+        "CIRCBOX":  __handle_circbox_group,
     }
 
     __bit_dispatch: dict = {

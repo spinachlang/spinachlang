@@ -54,8 +54,15 @@ class AstBuilder(Transformer):
 
     # pylint: disable=invalid-name
     def NUMBER(self, items):
-        """handle number"""
-        return int(str(items[0]))
+        """handle number — returns int for plain integers, float for decimals.
+
+        NOTE: Lark calls terminal callbacks with the Token directly (not wrapped
+        in a list), so we must use str(items), not str(items[0]).  The original
+        int(str(items[0])) took only the first *character*, which happened to
+        work for single-digit indices but would silently truncate '42' to 4.
+        """
+        s = str(items)
+        return float(s) if "." in s else int(s)
 
     def list(self, items):
         """handle list"""

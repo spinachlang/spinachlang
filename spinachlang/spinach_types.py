@@ -49,7 +49,7 @@ class GateCall(BaseModel):
     """Call of a gate with it's arguments"""
 
     name: str
-    args: List[Union[str, int]] = Field(default_factory=list)
+    args: List[Union[str, int, float]] = Field(default_factory=list)
 
 
 class GatePipeline(BaseModel):
