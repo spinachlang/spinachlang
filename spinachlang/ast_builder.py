@@ -64,6 +64,26 @@ class AstBuilder(Transformer):
         s = str(items)
         return float(s) if "." in s else int(s)
 
+    @v_args(inline=True)
+    def qubit_ref(self, number):
+        """Handle explicit 'q N' qubit index syntax.
+
+        q 0, q 1, q 2 … are exactly equivalent to the bare integers 0, 1, 2
+        as qubit references.  They can appear in:
+          - action targets:        q 0 -> H
+          - gate arguments:        target -> CX(q 1)
+          - list elements:         [q 0, q 1] -> H
+          - conditional targets:   q 0 -> X if flag
+
+        The number must be a non-negative integer (not a float angle).
+        """
+        if not isinstance(number, int):
+            raise ValueError(
+                f"Qubit index in 'q N' syntax must be a non-negative integer, got {number!r}. "
+                "Use bare numbers for gate angles, e.g. RZ(0.5)."
+            )
+        return number
+
     def list(self, items):
         """handle list"""
         return items

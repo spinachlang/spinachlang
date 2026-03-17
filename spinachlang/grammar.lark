@@ -20,28 +20,32 @@ bit_declaration: NAME ":" "b" NUMBER
 list_declaration: NAME ":" list
 instruction_declaration: NAME ":" gate_pip
 
+// Explicit qubit index: q N  (equivalent to bare N as a qubit reference)
+// "q" is therefore reserved and cannot be used as a qubit/instruction name.
+qubit_ref: "q" NUMBER
+
 // Gate pipelines like A | B | my_instruction
 gate_pip: (gate_pipe_by_name | gate) ("|" (gate | gate_pipe_by_name ))*
 gate_pipe_by_name: NAME [REVERSE_ARROW]
 // Allow: GATE, GATE(), GATE(arg, ...)
 gate: UPPER_NAME ["(" [args] ")"] -> gate_call
-args: (NAME | NUMBER) ("," (NAME | NUMBER))*
+args: (NAME | NUMBER | qubit_ref) ("," (NAME | NUMBER | qubit_ref))*
 
 // Actions: q1 -> gate or q1 -> my_instruction
-action: ( NAME | NUMBER | list | ALL) "->" [NUMBER] (gate_pip)
+action: ( NAME | NUMBER | qubit_ref | list | ALL) "->" [NUMBER] (gate_pip)
 
 // Classically conditional actions: q1 -> H if b0  or  q1 -> H if b0 else X
 // Multi-gate branches require parentheses: q1 -> (H | X) if b0 else (Z | Y)
-conditional_action: ( NAME | NUMBER | list | ALL) "->" cond_pip _IF_KW NAME
-                  | ( NAME | NUMBER | list | ALL) "->" cond_pip _IF_KW NAME _ELSE_KW cond_pip
+conditional_action: ( NAME | NUMBER | qubit_ref | list | ALL) "->" cond_pip _IF_KW NAME
+                  | ( NAME | NUMBER | qubit_ref | list | ALL) "->" cond_pip _IF_KW NAME _ELSE_KW cond_pip
 
 // A pipeline for a conditional branch: single gate, named instruction, or parenthesised multi-gate
 cond_pip: gate
         | gate_pipe_by_name
         | "(" gate_pip ")"
 
-// List of names
-list: "[" (NAME | NUMBER) ("," (NAME | NUMBER))* "]"
+// List of names/numbers/qubit refs
+list: "[" (NAME | NUMBER | qubit_ref) ("," (NAME | NUMBER | qubit_ref))* "]"
 
 // Identifiers
 // _IF_KW / _ELSE_KW have priority 2 so they win over NAME (priority 0) in the rare
