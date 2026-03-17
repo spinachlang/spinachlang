@@ -20,10 +20,13 @@ dependencies = [
   "pytket-projectq==0.38.0",
   "pytket-qir==0.24.1",
   "pathlib==1.0.1",
+  "pygls==2.0.1",
+  "lsprotocol==2025.0.0",
 ]
 
 [project.scripts]
 spinachlang = "spinachlang.main:main"
+spinachlang-lsp = "spinachlang.lsp_main:main"
 
 [project.optional-dependencies]
 dev = ["pylint>=3.2.0", "pytest>=8.3.0"]
