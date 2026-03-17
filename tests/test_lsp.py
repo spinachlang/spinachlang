@@ -10,43 +10,51 @@ import sys
 from unittest.mock import MagicMock
 
 # ---------------------------------------------------------------------------
-# Stub pytket *before* importing spinachlang so the backend / types modules
-# can be imported without the compiled C extension being present.
-# The LSP server only calls Parser.get_tree(), which depends only on lark.
+# Stub pytket *only if it is not installed*, and do so *before* importing
+# spinachlang so the backend / types modules can be imported without the
+# compiled C extension being present. The LSP server only calls
+# Parser.get_tree(), which depends only on lark.
 # ---------------------------------------------------------------------------
-for _mod in (
-    "pytket",
-    "pytket._tket",
-    "pytket._tket.architecture",
-    "pytket.architecture",
-    "pytket.circuit",
-    "pytket.backends",
-    "pytket.passes",
-    "pytket.predicates",
-    "pytket.extensions",
-    "pytket.extensions.cirq",
-    "pytket.extensions.pyquil",
-    "pytket.extensions.qiskit",
-    "pytket.extensions.pennylane",
-    "pytket.extensions.braket",
-    "pytket.extensions.projectq",
-    "pytket.extensions.qir",
-    "pytket.qasm",
-    "pytket.qasm.qasm",
-):
-    sys.modules.setdefault(_mod, MagicMock())
+try:
+    # If pytket is installed, use the real package and avoid injecting
+    # MagicMock stubs into sys.modules so other tests are not affected.
+    import pytket  # type: ignore[unused-import]
+except ImportError:
+    # pytket is not available: install lightweight MagicMock stubs into
+    # sys.modules so that spinachlang.lsp and its dependencies import cleanly.
+    for _mod in (
+        "pytket",
+        "pytket._tket",
+        "pytket._tket.architecture",
+        "pytket.architecture",
+        "pytket.circuit",
+        "pytket.backends",
+        "pytket.passes",
+        "pytket.predicates",
+        "pytket.extensions",
+        "pytket.extensions.cirq",
+        "pytket.extensions.pyquil",
+        "pytket.extensions.qiskit",
+        "pytket.extensions.pennylane",
+        "pytket.extensions.braket",
+        "pytket.extensions.projectq",
+        "pytket.extensions.qir",
+        "pytket.qasm",
+        "pytket.qasm.qasm",
+    ):
+        sys.modules.setdefault(_mod, MagicMock())
 
-# Make `from pytket import Circuit, Qubit, Bit` resolve to MagicMock instances.
-_pytket_stub = sys.modules["pytket"]
-_pytket_stub.Circuit = MagicMock(name="Circuit")
-_pytket_stub.Qubit = MagicMock(name="Qubit")
-_pytket_stub.Bit = MagicMock(name="Bit")
+    # Make `from pytket import Circuit, Qubit, Bit` resolve to MagicMock instances.
+    _pytket_stub = sys.modules["pytket"]
+    _pytket_stub.Circuit = MagicMock(name="Circuit")
+    _pytket_stub.Qubit = MagicMock(name="Qubit")
+    _pytket_stub.Bit = MagicMock(name="Bit")
 
-# Ensure `pytket.extensions` behaves as a real package so attribute access
-# like `pytket.extensions.cirq` resolves without AttributeError.
-_ext_stub = sys.modules["pytket.extensions"]
-_ext_stub.cirq = sys.modules["pytket.extensions.cirq"]
-_ext_stub.pyquil = sys.modules["pytket.extensions.pyquil"]
+    # Ensure `pytket.extensions` behaves as a real package so attribute access
+    # like `pytket.extensions.cirq` resolves without AttributeError.
+    _ext_stub = sys.modules["pytket.extensions"]
+    _ext_stub.cirq = sys.modules["pytket.extensions.cirq"]
+    _ext_stub.pyquil = sys.modules["pytket.extensions.pyquil"]
 
 # ---------------------------------------------------------------------------
 

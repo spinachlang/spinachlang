@@ -53,10 +53,6 @@ _GATES: dict[str, tuple[str, str]] = {
     "RX":      ("RX(θ) qubit",      "**RX(θ)** — rotation around X-axis by angle θ (radians)"),
     "RY":      ("RY(θ) qubit",      "**RY(θ)** — rotation around Y-axis by angle θ (radians)"),
     "RZ":      ("RZ(θ) qubit",      "**RZ(θ)** — rotation around Z-axis by angle θ (radians)"),
-    "R1":      ("R1(θ) qubit",      "**R1(θ)** — phase rotation by θ (equivalent to U1)"),
-    "U1":      ("U1(λ) qubit",      "**U1(λ)** — single-qubit phase rotation"),
-    "U2":      ("U2(φ,λ) qubit",    "**U2(φ,λ)** — single-qubit rotation with two angles"),
-    "U3":      ("U3(θ,φ,λ) qubit",  "**U3(θ,φ,λ)** — general single-qubit rotation"),
     "MEASURE": ("MEASURE qubit",    "**Measure** — collapses qubit to a classical bit"),
     "RESET":   ("RESET qubit",      "**Reset** — resets qubit to the |0⟩ state"),
     "BARRIER": ("BARRIER ...",      "**Barrier** — prevents optimisation across this point in the circuit"),
@@ -109,11 +105,23 @@ def _diagnostics_for(source: str) -> list[types.Diagnostic]:
     except UnexpectedToken as exc:
         line = max(0, exc.line - 1)
         col = max(0, exc.column - 1)
-        token_str = str(exc.token)
+        token = exc.token
+        token_str = str(token)
         msg = f"Unexpected token '{token_str}'"
         if exc.expected:
             msg += f". Expected one of: {', '.join(sorted(exc.expected))}"
-        return [_make_diagnostic(msg, line, col, col + len(token_str))]
+
+        # Prefer token position metadata to compute the diagnostic range.
+        if hasattr(token, "end_column") and getattr(token, "end_column") is not None:
+            # Lark columns are 1-based; convert to 0-based exclusive end index.
+            end_col = max(0, token.end_column - 1)
+        else:
+            # Fallback: use the length of the token's raw value if available,
+            # otherwise the string representation.
+            token_text = getattr(token, "value", token_str)
+            end_col = col + len(token_text)
+
+        return [_make_diagnostic(msg, line, col, end_col)]
 
     except UnexpectedEOF as exc:
         lines = source.splitlines()
@@ -124,8 +132,9 @@ def _diagnostics_for(source: str) -> list[types.Diagnostic]:
             msg += f". Expected one of: {', '.join(sorted(exc.expected))}"
         return [_make_diagnostic(msg, last_line, last_col, last_col)]
 
-    except Exception as exc:  # pylint: disable=broad-except
-        return [_make_diagnostic(f"Parse error: {exc}", 0, 0, 0)]
+    except Exception:  # pylint: disable=broad-except
+        logger.exception("Unexpected internal error during parsing")
+        return [_make_diagnostic("Internal parser error; see server logs for details.", 0, 0, 0)]
 
 
 def _make_diagnostic(
@@ -208,14 +217,14 @@ def completions(
         types.CompletionItem(
             label=name,
             kind=types.CompletionItemKind.Function,
-            detail=sig,
+            detail=_GATES[name][0],
             documentation=types.MarkupContent(
                 kind=types.MarkupKind.Markdown,
-                value=desc,
+                value=_GATES[name][1],
             ),
             insert_text=name,
         )
-        for name, (sig, desc) in _GATES.items()
+        for name in _GATE_NAMES
     ]
     return types.CompletionList(is_incomplete=False, items=items)
 

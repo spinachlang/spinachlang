@@ -11,14 +11,20 @@ import argparse
 import logging
 import sys
 
-from .lsp import SERVER_NAME, SERVER_VERSION, server
 
+def _build_arg_parser(server_name: str, server_version: str) -> argparse.ArgumentParser:
+    """Build the argument parser for the LSP entry point.
 
-def _build_arg_parser() -> argparse.ArgumentParser:
-    """Build the argument parser for the LSP entry point."""
+    Parameters
+    ----------
+    server_name:
+        Human-readable name of the LSP server implementation.
+    server_version:
+        Version string of the LSP server implementation.
+    """
     p = argparse.ArgumentParser(
         prog="spinachlang-lsp",
-        description=f"{SERVER_NAME} {SERVER_VERSION} — Language Server for SpinachLang (.sph files).",
+        description=f"{server_name} {server_version} — Language Server for SpinachLang (.sph files).",
     )
     p.add_argument(
         "--tcp",
@@ -48,7 +54,11 @@ def _build_arg_parser() -> argparse.ArgumentParser:
 
 def main() -> None:
     """Parse CLI arguments and start the SpinachLang LSP server."""
-    args = _build_arg_parser().parse_args()
+    # Import the LSP implementation lazily so that importing this module
+    # does not require the full SpinachLang + pytket stack.
+    from .lsp import SERVER_NAME, SERVER_VERSION, server
+
+    args = _build_arg_parser(SERVER_NAME, SERVER_VERSION).parse_args()
 
     logging.basicConfig(
         stream=sys.stderr,
