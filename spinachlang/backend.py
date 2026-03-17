@@ -4,8 +4,6 @@ import json
 from typing import Union
 from pytket import Circuit, Qubit, Bit
 from pytket.qasm import circuit_to_qasm_str
-from pytket.extensions.cirq import tk_to_cirq
-from pytket.extensions.pyquil import tk_to_pyquil
 
 from .spinach_types import (
     GateCall,
@@ -373,11 +371,25 @@ class Backend:
     @staticmethod
     def compile_to_cirq_python(circuit: Circuit) -> str:
         """create a python with cirq code representation of a tket circuit"""
+        try:
+            from pytket.extensions.cirq import tk_to_cirq  # pylint: disable=import-outside-toplevel
+        except ImportError as exc:
+            raise ImportError(
+                "Cirq output requires pytket-cirq. "
+                "Install it with: pip install 'spinachlang[backends]'"
+            ) from exc
         cirq_circ = tk_to_cirq(circuit)
         return f"import cirq\n\ncircuit = {repr(cirq_circ)}\nprint(circuit)"
 
     @staticmethod
     def compile_to_quil(circuit: Circuit) -> str:
         """create a quil code representation of a tket circuit"""
+        try:
+            from pytket.extensions.pyquil import tk_to_pyquil  # pylint: disable=import-outside-toplevel
+        except ImportError as exc:
+            raise ImportError(
+                "Quil output requires pytket-pyquil. "
+                "Install it with: pip install 'spinachlang[backends]'"
+            ) from exc
         pyquil_prog = tk_to_pyquil(circuit)
         return pyquil_prog.out()

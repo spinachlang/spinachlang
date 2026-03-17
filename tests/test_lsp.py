@@ -37,7 +37,6 @@ except ImportError:
         "pytket.extensions.qiskit",
         "pytket.extensions.pennylane",
         "pytket.extensions.braket",
-        "pytket.extensions.projectq",
         "pytket.extensions.qir",
         "pytket.qasm",
         "pytket.qasm.qasm",

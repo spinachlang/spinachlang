@@ -22,18 +22,21 @@ def read_code(path: str) -> str:
 def infer_output_path(
     input_path: str, language: str, provided: str | None
 ) -> pathlib.Path:
-    """Name the output file"""
+    """Name the output file.
+
+    The output is placed in the current working directory unless an
+    explicit path is provided via -o.
+    """
     if provided and provided != "-":
         return pathlib.Path(provided)
     in_path = pathlib.Path(input_path)
-    stem = in_path.stem
     ext_map = {
         "qasm": ".qasm",
         "json": ".json",
         "cirq": ".py",
         "quil": ".quil",
     }
-    return pathlib.Path(f"{stem}{ext_map[language]}")
+    return pathlib.Path(f"{in_path.stem}{ext_map[language]}")
 
 
 def main() -> None:
@@ -82,6 +85,7 @@ def main() -> None:
             sys.stdout.write(compiled)
         else:
             out_path.write_text(compiled, encoding="utf-8")
+            sys.stderr.write(f"Compiled to: {out_path.resolve()}\n")
     except OSError as e:
         sys.stderr.write(f"[Write Error] Could not write output: {e}\n")
         sys.exit(ExitCode.WRITE_ERROR)
