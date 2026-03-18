@@ -216,28 +216,28 @@ class Backend:
     @staticmethod
     def __handle_u1_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
         """IBM U1(λ) gate — diagonal single-qubit; 1 angle in half-turns."""
-        if len(args) < 1:
+        if len(args) != 1:
             raise ValueError("U1 requires exactly 1 angle argument: U1(λ)")
         c.U1(args[0], target, **(cond or {}))
 
     @staticmethod
     def __handle_u2_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
         """IBM U2(φ, λ) gate — 2 angles in half-turns."""
-        if len(args) < 2:
+        if len(args) != 2:
             raise ValueError("U2 requires exactly 2 angle arguments: U2(φ, λ)")
         c.U2(args[0], args[1], target, **(cond or {}))
 
     @staticmethod
     def __handle_u3_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
         """IBM U3(θ, φ, λ) gate — full SU(2); 3 angles in half-turns."""
-        if len(args) < 3:
+        if len(args) != 3:
             raise ValueError("U3 requires exactly 3 angle arguments: U3(θ, φ, λ)")
         c.U3(args[0], args[1], args[2], target, **(cond or {}))
 
     @staticmethod
     def __handle_tk1_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
         """TKET TK1(α, β, γ) Euler decomposition; 3 angles in half-turns."""
-        if len(args) < 3:
+        if len(args) != 3:
             raise ValueError("TK1 requires exactly 3 angle arguments: TK1(α, β, γ)")
         c.TK1(args[0], args[1], args[2], target, **(cond or {}))
 
