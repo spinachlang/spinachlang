@@ -1,6 +1,8 @@
 """backend of spinach"""
 
 import json
+import os
+import tempfile
 from functools import reduce
 from typing import Callable, Optional, Union
 from pytket import Circuit, Qubit, Bit
@@ -852,3 +854,63 @@ class Backend:
             ) from exc
         pyquil_prog = tk_to_pyquil(circuit)
         return pyquil_prog.out()
+
+    @staticmethod
+    def compile_to_latex(circuit: Circuit) -> str:
+        """Create a LaTeX/TikZ circuit diagram (quantikz package) from a tket circuit.
+
+        Uses pytket's built-in to_latex_file() via a temporary file and returns
+        the full .tex document as a string. No extra package required beyond pytket core.
+        """
+        tmp_fd, tmp_path = tempfile.mkstemp(suffix=".tex")
+        os.close(tmp_fd)
+        try:
+            circuit.to_latex_file(tmp_path)
+            with open(tmp_path, encoding="utf-8") as f:
+                return f.read()
+        finally:
+            try:
+                os.unlink(tmp_path)
+            except OSError:
+                pass
+
+    @staticmethod
+    def compile_to_qir(circuit: Circuit) -> str:
+        """Create a QIR (Quantum Intermediate Representation) LLVM IR text from a tket circuit.
+
+        QIR is the Microsoft-led standard for representing quantum programs as LLVM IR.
+        Requires the pytket-qir optional package.
+        """
+        try:
+            from pytket.qir import pytket_to_qir, QIRFormat  # pylint: disable=import-outside-toplevel
+        except ImportError as exc:
+            raise ImportError(
+                "QIR output requires pytket-qir. "
+                "Install it with: pip install 'spinachlang[backends]'"
+            ) from exc
+        result = pytket_to_qir(circuit, name="spinach_circuit", qir_format=QIRFormat.STRING)
+        if result is None:
+            raise ValueError(
+                "pytket_to_qir returned None — the circuit may contain operations "
+                "not yet supported by the QIR profile. Try adding measurements."
+            )
+        return result
+
+    @staticmethod
+    def compile_to_braket(circuit: Circuit) -> str:
+        """Create an Amazon Braket OpenQASM 3.0 representation of a tket circuit.
+
+        Returns the OpenQASM 3.0 source string as used by AWS Braket devices.
+        Requires the pytket-braket optional package.
+        """
+        try:
+            from pytket.extensions.braket import tk_to_braket  # pylint: disable=import-outside-toplevel
+            from braket.circuits.serialization import IRType    # pylint: disable=import-outside-toplevel
+        except ImportError as exc:
+            raise ImportError(
+                "Braket output requires pytket-braket. "
+                "Install it with: pip install 'spinachlang[backends]'"
+            ) from exc
+        braket_circuit = tk_to_braket(circuit)[0]
+        return braket_circuit.to_ir(IRType.OPENQASM).source
+

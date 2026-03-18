@@ -18,12 +18,17 @@ class Spinach:
     def compile(code: str, language: str) -> str:
         """translate spinach code to other languages"""
         dispatch = {
-            "qasm": Backend.compile_to_openqasm,
-            "json": Backend.compile_to_json,
-            "cirq": Backend.compile_to_cirq_python,
-            "quil": Backend.compile_to_quil,
+            "qasm":   Backend.compile_to_openqasm,
+            "json":   Backend.compile_to_json,
+            "cirq":   Backend.compile_to_cirq_python,
+            "quil":   Backend.compile_to_quil,
+            "latex":  Backend.compile_to_latex,
+            "qir":    Backend.compile_to_qir,
+            "braket": Backend.compile_to_braket,
         }
         if language not in dispatch:
-            raise ValueError("language cant be none")
-        fn = dispatch.get(language)
-        return fn(Spinach.create_circuit(code=code))
+            raise ValueError(
+                f"Unknown target language {language!r}. "
+                f"Valid options: {', '.join(sorted(dispatch))}"
+            )
+        return dispatch[language](Spinach.create_circuit(code=code))
