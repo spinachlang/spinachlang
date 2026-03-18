@@ -658,7 +658,7 @@ class Backend:
     @staticmethod
     def __ensure_bit(c: Circuit, b: Union[int, Bit]):
         """Ensure the bit is in the circuit."""
-        bit = Bit("d", b) if isinstance(b, int) else b
+        bit = Bit(Backend.DEFAULT_BIT_REGISTER, b) if isinstance(b, int) else b
         if bit not in c.bits:
             c.add_bit(bit)
 
