@@ -11,7 +11,7 @@ Verifies:
   - Top-level convenience functions are properly re-exported
 """
 
-import importlib.util
+import importlib
 import sys
 import unittest
 import unittest.mock as mock

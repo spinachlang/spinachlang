@@ -82,7 +82,30 @@ class AstBuilder(Transformer):
                 f"Qubit index in 'q N' syntax must be a non-negative integer, got {number!r}. "
                 "Use bare numbers for gate angles, e.g. RZ(0.5)."
             )
+        if number < 0:
+            raise ValueError(
+                f"Qubit index in 'q N' syntax must be non-negative, got {number!r}."
+            )
         return number
+
+    def _validate_non_negative_int_index(
+        self, index, kind: str, context: str
+    ) -> int:
+        """Validate that an index used in declarations is a non-negative int.
+
+        This is used for both qubit and bit declarations to ensure we catch
+        floats and negative integers early, before constructing PyTKET types.
+        """
+        if not isinstance(index, int):
+            raise ValueError(
+                f"{kind} index in {context} must be a non-negative integer, "
+                f"got {index!r}."
+            )
+        if index < 0:
+            raise ValueError(
+                f"{kind} index in {context} must be non-negative, got {index!r}."
+            )
+        return index
 
     def list(self, items):
         """handle list"""
@@ -97,14 +120,22 @@ class AstBuilder(Transformer):
           tom : q ancilla 0   → children (name, "ancilla", index) → Qubit("ancilla", index)
           tom : 0             → children (name, index)           → Qubit("q",        index)
         """
+        context = f"qubit declaration {name!r}"
         if number is None:
             # Alternative 2: bare index "tom : 0" — no "q" keyword at all
-            return QubitDeclaration(name=str(name), qubit=Qubit("q", reg_or_number))
+            index = self._validate_non_negative_int_index(
+                reg_or_number, "Qubit", context
+            )
+            return QubitDeclaration(name=str(name), qubit=Qubit("q", index))
         if reg_or_number is None:
             # Alternative 1, no register name: "tom : q 0"
-            return QubitDeclaration(name=str(name), qubit=Qubit("q", number))
+            index = self._validate_non_negative_int_index(number, "Qubit", context)
+            return QubitDeclaration(name=str(name), qubit=Qubit("q", index))
         # Alternative 1, named register: "tom : q ancilla 0"
-        return QubitDeclaration(name=str(name), qubit=Qubit(str(reg_or_number), number))
+        index = self._validate_non_negative_int_index(number, "Qubit", context)
+        return QubitDeclaration(
+            name=str(name), qubit=Qubit(str(reg_or_number), index)
+        )
 
     @v_args(inline=True)
     def bit_declaration(self, name, reg_or_number, number=None):
@@ -115,14 +146,22 @@ class AstBuilder(Transformer):
           flag : b result 0   → children (name, "result", index) → Bit("result", index)
           legacy 2-child tree → children (name, index)           → Bit("c",      index)
         """
+        context = f"bit declaration {name!r}"
         if number is None:
             # Legacy 2-child tree (e.g. manually constructed in tests): reg_or_number is the index
-            return BitDeclaration(name=str(name), bit=Bit("c", reg_or_number))
+            index = self._validate_non_negative_int_index(
+                reg_or_number, "Bit", context
+            )
+            return BitDeclaration(name=str(name), bit=Bit("c", index))
         if reg_or_number is None:
             # No register name: "flag : b 0"
-            return BitDeclaration(name=str(name), bit=Bit("c", number))
+            index = self._validate_non_negative_int_index(number, "Bit", context)
+            return BitDeclaration(name=str(name), bit=Bit("c", index))
         # Named register: "flag : b result 0"
-        return BitDeclaration(name=str(name), bit=Bit(str(reg_or_number), number))
+        index = self._validate_non_negative_int_index(number, "Bit", context)
+        return BitDeclaration(
+            name=str(name), bit=Bit(str(reg_or_number), index)
+        )
 
     @v_args(inline=True)
     def list_declaration(self, name, lst):
