@@ -9,6 +9,7 @@ from .spinach_types import (
     GatePipeline,
     GateCall,
     Action,
+    ConditionalAction,
     QubitDeclaration,
     BitDeclaration,
     ListDeclaration,
@@ -53,22 +54,114 @@ class AstBuilder(Transformer):
 
     # pylint: disable=invalid-name
     def NUMBER(self, items):
-        """handle number"""
-        return int(str(items[0]))
+        """handle number — returns int for plain integers, float for decimals.
+
+        NOTE: Lark calls terminal callbacks with the Token directly (not wrapped
+        in a list), so we must use str(items), not str(items[0]).  The original
+        int(str(items[0])) took only the first *character*, which happened to
+        work for single-digit indices but would silently truncate '42' to 4.
+        """
+        s = str(items)
+        return float(s) if "." in s else int(s)
+
+    @v_args(inline=True)
+    def qubit_ref(self, number):
+        """Handle explicit 'q N' qubit index syntax.
+
+        q 0, q 1, q 2 … are exactly equivalent to the bare integers 0, 1, 2
+        as qubit references.  They can appear in:
+          - action targets:        q 0 -> H
+          - gate arguments:        target -> CX(q 1)
+          - list elements:         [q 0, q 1] -> H
+          - conditional targets:   q 0 -> X if flag
+
+        The number must be a non-negative integer (not a float angle).
+        """
+        if not isinstance(number, int):
+            raise ValueError(
+                f"Qubit index in 'q N' syntax must be a non-negative integer, got {number!r}. "
+                "Use bare numbers for gate angles, e.g. RZ(0.5)."
+            )
+        if number < 0:
+            raise ValueError(
+                f"Qubit index in 'q N' syntax must be non-negative, got {number!r}."
+            )
+        return number
+
+    def _validate_non_negative_int_index(
+        self, index, kind: str, context: str
+    ) -> int:
+        """Validate that an index used in declarations is a non-negative int.
+
+        This is used for both qubit and bit declarations to ensure we catch
+        floats and negative integers early, before constructing PyTKET types.
+        """
+        if not isinstance(index, int):
+            raise ValueError(
+                f"{kind} index in {context} must be a non-negative integer, "
+                f"got {index!r}."
+            )
+        if index < 0:
+            raise ValueError(
+                f"{kind} index in {context} must be non-negative, got {index!r}."
+            )
+        return index
 
     def list(self, items):
         """handle list"""
         return items
 
     @v_args(inline=True)
-    def qubit_declaration(self, name, number):
-        """handle qubit declaration"""
-        return QubitDeclaration(name=name, qubit=Qubit("q", number))
+    def qubit_declaration(self, name, reg_or_number, number=None):
+        """Handle qubit declaration with optional named register.
+
+        Forms (Lark passes None for absent optional [NAME]):
+          tom : q 0           → children (name, None,   index) → Qubit("q",        index)
+          tom : q ancilla 0   → children (name, "ancilla", index) → Qubit("ancilla", index)
+          tom : 0             → children (name, index)           → Qubit("q",        index)
+        """
+        context = f"qubit declaration {name!r}"
+        if number is None:
+            # Alternative 2: bare index "tom : 0" — no "q" keyword at all
+            index = self._validate_non_negative_int_index(
+                reg_or_number, "Qubit", context
+            )
+            return QubitDeclaration(name=str(name), qubit=Qubit("q", index))
+        if reg_or_number is None:
+            # Alternative 1, no register name: "tom : q 0"
+            index = self._validate_non_negative_int_index(number, "Qubit", context)
+            return QubitDeclaration(name=str(name), qubit=Qubit("q", index))
+        # Alternative 1, named register: "tom : q ancilla 0"
+        index = self._validate_non_negative_int_index(number, "Qubit", context)
+        return QubitDeclaration(
+            name=str(name), qubit=Qubit(str(reg_or_number), index)
+        )
 
     @v_args(inline=True)
-    def bit_declaration(self, name, number):
-        """handle qubit declaration"""
-        return BitDeclaration(name=name, bit=Bit("c", number))
+    def bit_declaration(self, name, reg_or_number, number=None):
+        """Handle classical bit declaration with optional named register.
+
+        Forms (Lark passes None for absent optional [NAME]):
+          flag : b 0          → children (name, None,     index) → Bit("c",      index)
+          flag : b result 0   → children (name, "result", index) → Bit("result", index)
+          legacy 2-child tree → children (name, index)           → Bit("c",      index)
+        """
+        context = f"bit declaration {name!r}"
+        if number is None:
+            # Legacy 2-child tree (e.g. manually constructed in tests): reg_or_number is the index
+            index = self._validate_non_negative_int_index(
+                reg_or_number, "Bit", context
+            )
+            return BitDeclaration(name=str(name), bit=Bit("c", index))
+        if reg_or_number is None:
+            # No register name: "flag : b 0"
+            index = self._validate_non_negative_int_index(number, "Bit", context)
+            return BitDeclaration(name=str(name), bit=Bit("c", index))
+        # Named register: "flag : b result 0"
+        index = self._validate_non_negative_int_index(number, "Bit", context)
+        return BitDeclaration(
+            name=str(name), bit=Bit(str(reg_or_number), index)
+        )
 
     @v_args(inline=True)
     def list_declaration(self, name, lst):
@@ -117,6 +210,38 @@ class AstBuilder(Transformer):
             target=target,
             count=count,
             instruction=GatePipeline(parts=instruction.parts),
+        )
+
+    def cond_pip(self, items):
+        """Handle a conditional branch pipeline.
+
+        Returns a GatePipeline regardless of whether the source was a single
+        gate, a named instruction, or a parenthesised multi-gate pipeline.
+        """
+        item = items[0]
+        if isinstance(item, GateCall):
+            return GatePipeline(parts=[item])
+        if isinstance(item, GatePipeByName):
+            return GatePipeline(parts=[item])
+        # Already a GatePipeline coming from "(" gate_pip ")"
+        return item
+
+    def conditional_action(self, items):
+        """Handle classically conditional actions.
+
+        Two forms (both with _IF_KW and _ELSE_KW filtered out):
+          if-only:   [target, if_pipeline, bit_name]          (3 items)
+          if/else:   [target, if_pipeline, bit_name, else_pipeline]  (4 items)
+        """
+        target = items[0]
+        if_pipeline = items[1]   # GatePipeline from cond_pip
+        condition_bit = str(items[2])  # NAME token → condition bit name
+        else_pipeline = items[3] if len(items) > 3 else None
+        return ConditionalAction(
+            target=target,
+            condition_bit=condition_bit,
+            if_pipeline=if_pipeline,
+            else_pipeline=else_pipeline,
         )
 
     def declaration(self, items):

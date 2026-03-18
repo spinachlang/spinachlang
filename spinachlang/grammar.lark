@@ -7,33 +7,62 @@ start: (_NL* statement _NL*)+
 
 statement: declaration
          | action
+         | conditional_action
 
 // Declarations
 declaration: qubit_declaration
+           | bit_declaration
            | list_declaration
            | instruction_declaration
 
-qubit_declaration: NAME ":" "q"? NUMBER
-bit_declaration: NAME ":" "b" NUMBER 
+// Optional register name: "tom : q 0" → Qubit("q",0), "tom : q ancilla 0" → Qubit("ancilla",0)
+qubit_declaration: NAME ":" "q" [NAME] NUMBER
+                 | NAME ":" NUMBER
+// Optional register name: "flag : b 0" → Bit("c",0), "flag : b result 0" → Bit("result",0)
+bit_declaration: NAME ":" "b" [NAME] NUMBER
 list_declaration: NAME ":" list
 instruction_declaration: NAME ":" gate_pip
+
+// Explicit qubit index: q N  (equivalent to bare N as a qubit reference)
+// "q" is therefore reserved and cannot be used as a qubit/instruction name.
+qubit_ref: "q" NUMBER
 
 // Gate pipelines like A | B | my_instruction
 gate_pip: (gate_pipe_by_name | gate) ("|" (gate | gate_pipe_by_name ))*
 gate_pipe_by_name: NAME [REVERSE_ARROW]
-// Allow: GATE, GATE(), GATE(arg, ...) 
+// Allow: GATE, GATE(), GATE(arg, ...)
 gate: UPPER_NAME ["(" [args] ")"] -> gate_call
-args: (NAME | NUMBER) ("," (NAME | NUMBER))*
+args: (NAME | NUMBER | qubit_ref) ("," (NAME | NUMBER | qubit_ref))*
 
 // Actions: q1 -> gate or q1 -> my_instruction
-action: ( NAME | NUMBER | list | ALL) "->" [NUMBER] (gate_pip)
+action: ( NAME | NUMBER | qubit_ref | list | ALL) "->" [NUMBER] (gate_pip)
 
-// List of names
-list: "[" (NAME | NUMBER) ("," (NAME | NUMBER))* "]"
+// Classically conditional actions: q1 -> H if b0  or  q1 -> H if b0 else X
+// Multi-gate branches require parentheses: q1 -> (H | X) if b0 else (Z | Y)
+conditional_action: ( NAME | NUMBER | qubit_ref | list | ALL) "->" cond_pip _IF_KW NAME
+                  | ( NAME | NUMBER | qubit_ref | list | ALL) "->" cond_pip _IF_KW NAME _ELSE_KW cond_pip
+
+// A pipeline for a conditional branch: single gate, named instruction, or parenthesised multi-gate
+cond_pip: gate
+        | gate_pipe_by_name
+        | "(" gate_pip ")"
+
+// List of names/numbers/qubit refs
+list: "[" (NAME | NUMBER | qubit_ref) ("," (NAME | NUMBER | qubit_ref))* "]"
 
 // Identifiers
+// _IF_KW / _ELSE_KW have priority 2 so they win over NAME (priority 0) in the rare
+// states where both are valid.  In practice the contextual lexer (LALR) already
+// resolves this by only allowing each terminal in the states where it is grammatically
+// valid, so the priority is just a safety net.
 NAME: /[a-z][a-zA-Z0-9_]*/
-UPPER_NAME: /[A-Z]+/
-NUMBER: /\d+/
+// UPPER_NAME allows digits after the first letter so gate names like TK1, TK2,
+// U1, U2, U3, CRX, ISWAPMAX etc. are valid tokens.
+UPPER_NAME: /[A-Z][A-Z0-9]*/
+// NUMBER accepts integers (0, 1, 42) and decimals (0.5, 3.14) so that rotation
+// angles expressed in half-turns can be given as literals in gate arguments.
+NUMBER: /\d+(\.\d+)?/
 REVERSE_ARROW: "<-"
 ALL: "*"
+_IF_KW.2: "if"
+_ELSE_KW.2: "else"

@@ -31,10 +31,13 @@ def infer_output_path(
         return pathlib.Path(provided)
     in_path = pathlib.Path(input_path)
     ext_map = {
-        "qasm": ".qasm",
-        "json": ".json",
-        "cirq": ".py",
-        "quil": ".quil",
+        "qasm":   ".qasm",
+        "json":   ".json",
+        "cirq":   ".py",
+        "quil":   ".quil",
+        "latex":  ".tex",
+        "qir":    ".ll",
+        "braket": ".qasm",
     }
     return pathlib.Path(f"{in_path.stem}{ext_map[language]}")
 
@@ -53,7 +56,7 @@ def main() -> None:
         "-l",
         "--language",
         required=True,
-        choices=["qasm", "cirq", "quil", "json"],
+        choices=["qasm", "cirq", "quil", "json", "latex", "qir", "braket"],
         help="Target compilation language.",
     )
     parser.add_argument(

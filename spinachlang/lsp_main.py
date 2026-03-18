@@ -56,7 +56,7 @@ def main() -> None:
     """Parse CLI arguments and start the SpinachLang LSP server."""
     # Import the LSP implementation lazily so that importing this module
     # does not require the full SpinachLang + pytket stack.
-    from .lsp import SERVER_NAME, SERVER_VERSION, server
+    from .lsp import SERVER_NAME, SERVER_VERSION, server  # pylint: disable=import-outside-toplevel
 
     args = _build_arg_parser(SERVER_NAME, SERVER_VERSION).parse_args()
 
@@ -74,4 +74,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

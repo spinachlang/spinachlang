@@ -129,3 +129,103 @@ On **NixOS**, run tests from inside `nix-shell`:
 ```bash
 nix-shell --run '.venv/bin/pytest tests/ -v'
 ```
+
+---
+
+## Gate Reference
+
+All angles are expressed in **half-turns** (multiples of π).  
+`RX(0.5)` = rotation by π/2 rad.  Decimal literals are supported: `RX(0.5)`, `TK1(0.25, 0.5, 0.75)`, etc.
+
+### Single-qubit gates
+
+| Spinach name | PyTKET gate | Parameters | Notes |
+|---|---|---|---|
+| `H` | `H` | — | Hadamard |
+| `X` / `N` | `X` | — | Pauli X / NOT |
+| `Y` | `Y` | — | Pauli Y |
+| `Z` | `Z` | — | Pauli Z |
+| `S` | `S` | — | S gate |
+| `ST` | `Sdg` | — | S† |
+| `T` | `T` | — | T gate |
+| `TT` | `Tdg` | — | T† |
+| `SX` | `SX` | — | √X |
+| `SXDG` | `SXdg` | — | √X† |
+| `V` | `V` | — | V gate (≡ √X in TKET) |
+| `VDG` | `Vdg` | — | V† |
+| `RX(a)` | `Rx` | 1 angle | Rotation around X |
+| `RY(a)` | `Ry` | 1 angle | Rotation around Y |
+| `RZ(a)` | `Rz` | 1 angle | Rotation around Z |
+| `U1(λ)` | `U1` | 1 angle | IBM diagonal gate |
+| `U2(φ,λ)` | `U2` | 2 angles | IBM 2-angle gate |
+| `U3(θ,φ,λ)` | `U3` | 3 angles | IBM full SU(2) |
+| `TK1(α,β,γ)` | `TK1` | 3 angles | TKET Euler decomposition |
+| `PX(exp,ph)` / `PHASEDX(exp,ph)` | `PhasedX` | 2 angles | X rotation around a phase-shifted axis |
+| `RESET` / `R` | `Reset` | — | Reset to \|0⟩ |
+
+### Two-qubit gates
+
+Convention: `target -> GATE(…, ctrl_or_partner)` — the last positional arg is always the partner qubit (by integer index or name).
+
+| Spinach name | PyTKET gate | Parameters | Notes |
+|---|---|---|---|
+| `CX(ctrl)` / `CNOT(ctrl)` | `CX` | ctrl | Controlled-X |
+| `FCX(ctrl)` / `FCNOT(ctrl)` | `CX` (flipped) | ctrl | CX with roles swapped |
+| `CY(ctrl)` | `CY` | ctrl | Controlled-Y |
+| `FCY(ctrl)` | `CY` (flipped) | ctrl | |
+| `CZ(ctrl)` | `CZ` | ctrl | Controlled-Z |
+| `FCZ(ctrl)` | `CZ` (flipped) | ctrl | |
+| `CH(ctrl)` | `CH` | ctrl | Controlled-H |
+| `FCH(ctrl)` | `CH` (flipped) | ctrl | |
+| `CU1(a,ctrl)` | `CU1` | 1 angle + ctrl | Controlled-U1 |
+| `CRX(a,ctrl)` | `CRx` | 1 angle + ctrl | Controlled-Rx |
+| `CRY(a,ctrl)` | `CRy` | 1 angle + ctrl | Controlled-Ry |
+| `CRZ(a,ctrl)` | `CRz` | 1 angle + ctrl | Controlled-Rz |
+| `SWAP(other)` | `SWAP` | other | SWAP |
+| `ECR(ctrl)` | `ECR` | ctrl | Echoed Cross-Resonance |
+| `ISWAP(a,other)` | `ISWAP` | 1 angle + other | iSWAP with phase |
+| `ISWAPMAX(other)` | `ISWAPMax` | other | Maximal iSWAP (≡ ISWAP(1)) |
+| `ZZMAX(other)` | `ZZMax` | other | ZZMax (≡ ZZPhase(½)) |
+| `ZZPH(a,other)` | `ZZPhase` | 1 angle + other | ZZ interaction |
+| `XXPH(a,other)` | `XXPhase` | 1 angle + other | XX interaction |
+| `YYPH(a,other)` | `YYPhase` | 1 angle + other | YY interaction |
+| `FSIM(θ,φ,other)` | `FSim` | 2 angles + other | Fermionic Simulation |
+| `TK2(a,b,c,other)` | `TK2` | 3 angles + other | TKET canonical 2-qubit |
+| `PHISWAP(p,t,other)` | `PhasedISWAP` | 2 angles + other | Phased iSWAP |
+
+### Three-qubit gates
+
+| Spinach name | PyTKET gate | Parameters | Notes |
+|---|---|---|---|
+| `CCX(c1,c2)` / `TOFFOLI(c1,c2)` | `CCX` | 2 controls | Toffoli |
+| `CSWAP(ctrl,other)` / `FREDKIN(ctrl,other)` | `CSWAP` | ctrl + other | Fredkin — swaps target↔other when ctrl=\|1⟩ |
+| `XXP3(a,q1,q2)` | `XXPhase3` | 1 angle + 2 partners | Simultaneous XX on all pairs |
+
+### Measurement & classical
+
+| Spinach name | Effect | Notes |
+|---|---|---|
+| `M` / `MEASURE` | Measure to classical bit | `* -> M` measures all qubits |
+| `BARRIER` | Synchronisation point | Cross-qubit, no-reorder fence |
+| `SET(0\|1)` | Set bit to 0 or 1 | Classical bit target |
+| `NOT` / `NOT(src)` | Classical NOT | In-place or with source |
+| `AND(b0,b1)` | Classical AND | 2 bit args |
+| `OR(b0,b1)` | Classical OR | 2 bit args |
+| `XOR(b0,b1)` | Classical XOR | 2 bit args |
+| `COPY(src)` | Copy bit | |
+
+### Global phase & CircBox
+
+```spinach
+# Global phase: PHASE(angle) adds e^{i·angle·π} to the circuit scalar.
+# The qubit target is syntactically required but ignored.
+0 -> PHASE(0.5)
+
+# CircBox: wrap a named instruction pipeline as a reusable black-box sub-circuit.
+# The box has abstract qubits 0…n-1 mapping to the target list in order.
+bell : H | CX(1)
+q0 : q 0
+q1 : q 1
+[q0, q1] -> CIRCBOX(bell)
+```
+
