@@ -35,8 +35,10 @@ class TestBitDeclaration(unittest.TestCase):
         self.assertEqual(decl.data, "declaration")
         bit_node = decl.children[0]
         self.assertEqual(bit_node.data, "bit_declaration")
+        # "result : b 0" → children = [name, None (no register), number]
         self.assertEqual(str(bit_node.children[0]), "result")
-        self.assertEqual(str(bit_node.children[1]), "0")
+        self.assertIsNone(bit_node.children[1])
+        self.assertEqual(str(bit_node.children[2]), "0")
 
     def test_bit_declaration_builds_ast(self):
         """AstBuilder must produce a BitDeclaration from source."""

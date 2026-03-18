@@ -59,11 +59,11 @@ class TestSpinachFront(unittest.TestCase):
         self.assertIsInstance(qubit, Tree)
         self.assertEqual(qubit.data, "qubit_declaration")
 
-        name_node, number_node = qubit.children
-
-        self.assertEqual(name_node, "bob")
-
-        self.assertEqual(number_node, "2")
+        # "bob : q 2" → children = [name, None (no register), number]
+        self.assertEqual(len(qubit.children), 3)
+        self.assertEqual(str(qubit.children[0]), "bob")
+        self.assertIsNone(qubit.children[1])   # no register name given
+        self.assertEqual(str(qubit.children[2]), "2")
 
     def test_qubit_naming(self):
         """Ensure qubit declaration names and numbers parse correctly."""

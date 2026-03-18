@@ -15,8 +15,11 @@ declaration: qubit_declaration
            | list_declaration
            | instruction_declaration
 
-qubit_declaration: NAME ":" "q"? NUMBER
-bit_declaration: NAME ":" "b" NUMBER
+// Optional register name: "tom : q 0" → Qubit("q",0), "tom : q ancilla 0" → Qubit("ancilla",0)
+qubit_declaration: NAME ":" "q" [NAME] NUMBER
+                 | NAME ":" NUMBER
+// Optional register name: "flag : b 0" → Bit("c",0), "flag : b result 0" → Bit("result",0)
+bit_declaration: NAME ":" "b" [NAME] NUMBER
 list_declaration: NAME ":" list
 instruction_declaration: NAME ":" gate_pip
 

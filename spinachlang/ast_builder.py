@@ -89,14 +89,40 @@ class AstBuilder(Transformer):
         return items
 
     @v_args(inline=True)
-    def qubit_declaration(self, name, number):
-        """handle qubit declaration"""
-        return QubitDeclaration(name=name, qubit=Qubit("q", number))
+    def qubit_declaration(self, name, reg_or_number, number=None):
+        """Handle qubit declaration with optional named register.
+
+        Forms (Lark passes None for absent optional [NAME]):
+          tom : q 0           → children (name, None,   index) → Qubit("q",        index)
+          tom : q ancilla 0   → children (name, "ancilla", index) → Qubit("ancilla", index)
+          tom : 0             → children (name, index)           → Qubit("q",        index)
+        """
+        if number is None:
+            # Alternative 2: bare index "tom : 0" — no "q" keyword at all
+            return QubitDeclaration(name=str(name), qubit=Qubit("q", reg_or_number))
+        if reg_or_number is None:
+            # Alternative 1, no register name: "tom : q 0"
+            return QubitDeclaration(name=str(name), qubit=Qubit("q", number))
+        # Alternative 1, named register: "tom : q ancilla 0"
+        return QubitDeclaration(name=str(name), qubit=Qubit(str(reg_or_number), number))
 
     @v_args(inline=True)
-    def bit_declaration(self, name, number):
-        """handle qubit declaration"""
-        return BitDeclaration(name=name, bit=Bit("c", number))
+    def bit_declaration(self, name, reg_or_number, number=None):
+        """Handle classical bit declaration with optional named register.
+
+        Forms (Lark passes None for absent optional [NAME]):
+          flag : b 0          → children (name, None,     index) → Bit("c",      index)
+          flag : b result 0   → children (name, "result", index) → Bit("result", index)
+          legacy 2-child tree → children (name, index)           → Bit("c",      index)
+        """
+        if number is None:
+            # Legacy 2-child tree (e.g. manually constructed in tests): reg_or_number is the index
+            return BitDeclaration(name=str(name), bit=Bit("c", reg_or_number))
+        if reg_or_number is None:
+            # No register name: "flag : b 0"
+            return BitDeclaration(name=str(name), bit=Bit("c", number))
+        # Named register: "flag : b result 0"
+        return BitDeclaration(name=str(name), bit=Bit(str(reg_or_number), number))
 
     @v_args(inline=True)
     def list_declaration(self, name, lst):
