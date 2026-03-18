@@ -9,7 +9,6 @@ from pytket import Circuit, Qubit, Bit
 from pytket.qasm import circuit_to_qasm_str
 
 from .spinach_types import (
-    GateCall,
     GatePipeByName,
     GatePipeline,
     QubitDeclaration,
@@ -395,7 +394,7 @@ class Backend:
     # ── New group handlers ────────────────────────────────────────────────
 
     @staticmethod
-    def __handle_phase_group(c: Circuit, targets: list, args: list, cond: Optional[dict] = None):
+    def __handle_phase_group(c: Circuit, _targets: list, args: list, cond: Optional[dict] = None):
         """PHASE(angle) — adds a global phase of angle × π to the whole circuit.
 
         The target qubit is accepted for syntactic consistency but is ignored:
@@ -468,7 +467,7 @@ class Backend:
     # Stored directly in the dispatch table (no _per_target wrapping needed).
 
     @staticmethod
-    def __handle_barrier_group(c: Circuit, targets: list, args: list, cond: Optional[dict] = None):
+    def __handle_barrier_group(c: Circuit, targets: list, _args: list, cond: Optional[dict] = None):
         """BARRIER — one joint barrier across all qubit targets.
 
         A single c.add_barrier([q0, q1, ...]) is a cross-qubit synchronisation
@@ -503,7 +502,7 @@ class Backend:
         list(map(_measure_qubit, qubit_targets))
 
     @staticmethod
-    def __handle_not_bit(c: Circuit, target: Bit, args: list, cond: Optional[dict] = None):
+    def __handle_not_bit(c: Circuit, target: Bit, args: list, _cond: Optional[dict] = None):
         """Classical NOT: target = NOT source  (source defaults to target for in-place)"""
         if len(args) > 1:
             raise ValueError("NOT takes 0 or 1 argument: NOT  or  NOT(src_bit)")
@@ -515,7 +514,7 @@ class Backend:
         c.add_c_not(src, target)
 
     @staticmethod
-    def __handle_set_bit(c: Circuit, target: Bit, args: list, cond: Optional[dict] = None):
+    def __handle_set_bit(c: Circuit, target: Bit, args: list, _cond: Optional[dict] = None):
         """Classical SET: target = 0 or 1"""
         if len(args) != 1 or not isinstance(args[0], int):
             raise ValueError("SET requires exactly one integer literal: SET(0) or SET(1)")
@@ -525,7 +524,7 @@ class Backend:
         c.add_c_setbits([bool(args[0])], [target])
 
     @staticmethod
-    def __handle_and_bit(c: Circuit, target: Bit, args: list, cond: Optional[dict] = None):
+    def __handle_and_bit(c: Circuit, target: Bit, args: list, _cond: Optional[dict] = None):
         """Classical AND: target = args[0] AND args[1]"""
         if len(args) != 2 or not all(isinstance(a, Bit) for a in args):
             raise ValueError("AND requires exactly 2 bit arguments: AND(b0, b1)")
@@ -534,7 +533,7 @@ class Backend:
         c.add_c_and(b0, b1, target)
 
     @staticmethod
-    def __handle_or_bit(c: Circuit, target: Bit, args: list, cond: Optional[dict] = None):
+    def __handle_or_bit(c: Circuit, target: Bit, args: list, _cond: Optional[dict] = None):
         """Classical OR: target = args[0] OR args[1]"""
         if len(args) != 2 or not all(isinstance(a, Bit) for a in args):
             raise ValueError("OR requires exactly 2 bit arguments: OR(b0, b1)")
@@ -543,7 +542,7 @@ class Backend:
         c.add_c_or(b0, b1, target)
 
     @staticmethod
-    def __handle_xor_bit(c: Circuit, target: Bit, args: list, cond: Optional[dict] = None):
+    def __handle_xor_bit(c: Circuit, target: Bit, args: list, _cond: Optional[dict] = None):
         """Classical XOR: target = args[0] XOR args[1]"""
         if len(args) != 2 or not all(isinstance(a, Bit) for a in args):
             raise ValueError("XOR requires exactly 2 bit arguments: XOR(b0, b1)")
@@ -552,7 +551,7 @@ class Backend:
         c.add_c_xor(b0, b1, target)
 
     @staticmethod
-    def __handle_copy_bit(c: Circuit, target: Bit, args: list, cond: Optional[dict] = None):
+    def __handle_copy_bit(c: Circuit, target: Bit, args: list, _cond: Optional[dict] = None):
         """Classical COPY: target = args[0]"""
         if len(args) != 1 or not isinstance(args[0], Bit):
             raise ValueError("COPY requires exactly 1 bit argument: COPY(src_bit)")
@@ -913,4 +912,3 @@ class Backend:
             ) from exc
         braket_circuit = tk_to_braket(circuit)[0]
         return braket_circuit.to_ir(IRType.OPENQASM).source
-

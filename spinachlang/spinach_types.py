@@ -85,4 +85,3 @@ class ConditionalAction(BaseModel):
     condition_bit: str  # name that resolves to a BitDeclaration in the index
     if_pipeline: GatePipeline
     else_pipeline: Optional[GatePipeline] = None
-

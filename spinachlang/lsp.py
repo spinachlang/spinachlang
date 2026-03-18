@@ -205,8 +205,8 @@ def did_close(ls: LanguageServer, params: types.DidCloseTextDocumentParams) -> N
     types.CompletionOptions(trigger_characters=[" ", "|", ":"]),
 )
 def completions(
-    ls: LanguageServer,  # noqa: ARG001
-    params: types.CompletionParams,  # noqa: ARG001
+    _ls: LanguageServer,
+    _params: types.CompletionParams,
 ) -> types.CompletionList:
     """Return completion items for all built-in quantum gates.
 
@@ -298,4 +298,3 @@ def start_lsp_server() -> None:
     )
     logger.info("Starting %s v%s", SERVER_NAME, SERVER_VERSION)
     server.start_io()
-

@@ -26,7 +26,13 @@ def _build_parser() -> Lark:
 
 
 class Parser:  # pylint: disable=too-few-public-methods
+    """Frontend wrapper that exposes a single entry point for parsing Spinach source code."""
 
     @staticmethod
     def get_tree(code: str):
+        """Parse *code* and return the Lark parse tree.
+
+        The underlying Lark parser is built once per process (cached via
+        ``_build_parser``) so repeated calls incur only the parse cost.
+        """
         return _build_parser().parse(code)
