@@ -7,7 +7,7 @@ Verifies:
   - to_braket() → braket.circuits.Circuit (skipped if pytket-braket absent)
   - to_pyquil() → pyquil.Program          (skipped if pytket-pyquil absent)
   - to_qiskit() → qiskit.QuantumCircuit   (skipped if pytket-qiskit absent)
-  - Missing optional packages raise ImportError with a helpful install hint
+  - Missing packages raise ImportError with a helpful install hint
   - Top-level convenience functions are properly re-exported
 """
 
@@ -253,8 +253,8 @@ class TestToQiskit(unittest.TestCase):
 # ---------------------------------------------------------------------------
 
 class TestImportErrorMessages(unittest.TestCase):
-    """Each to_*() method must raise ImportError mentioning 'spinachlang[backends]'
-    when its optional extension package is not available."""
+    """Each to_*() method must raise ImportError mentioning 'pip install spinachlang'
+    when its extension package is not available."""
 
     _EXT_MAP = {
         "to_cirq":   "pytket.extensions.cirq",
@@ -269,9 +269,9 @@ class TestImportErrorMessages(unittest.TestCase):
             with self.assertRaises(ImportError) as ctx:
                 getattr(Spinach, method)(_SIMPLE)
         self.assertIn(
-            "spinachlang[backends]",
+            "pip install spinachlang",
             str(ctx.exception),
-            f"Spinach.{method} ImportError should mention 'spinachlang[backends]'",
+            f"Spinach.{method} ImportError should mention 'pip install spinachlang'",
         )
 
     def test_cirq_hint(self):

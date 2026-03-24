@@ -3,7 +3,10 @@ name = "spinachlang"
 version = "0.4.0"
 description = "A quantum programming language and compiler."
 readme = "README.md"
-requires-python = ">=3.10"
+# Capped at <3.13: pytket-pyquil's transitive dep quil==0.17.0 uses pyo3==0.20.x
+# whose maximum supported Python is 3.12. Re-evaluate this cap when upgrading
+# pytket-pyquil or its quil/pyo3 transitive dependencies.
+requires-python = ">=3.10,<3.13"
 license = { text = "MIT" }
 authors = [{ name = "Cedrick Gauthier", email = "spinachlang@proton.me" }]
 
@@ -11,6 +14,14 @@ dependencies = [
   "lark==1.2.2",
   "pytket==2.15.0",
   "pydantic==2.11.7",
+  "pytket-cirq==0.40.0",
+  # pytket-pyquil's transitive dep quil==0.17.0 uses pyo3==0.20.x (max Python 3.12).
+  # If upgrading pytket-pyquil, re-check whether the Python cap above can be lifted.
+  "pytket-pyquil==0.40.0",
+  "pytket-qiskit==0.77.0",
+  "pytket-pennylane==0.20.0",
+  "pytket-braket==0.43.0",
+  "pytket-qir==0.24.1",
 ]
 
 [project.optional-dependencies]
@@ -18,17 +29,6 @@ dependencies = [
 lsp = [
   "pygls==2.0.1",
   "lsprotocol==2025.0.0",
-]
-# Native-object converters: to_cirq(), to_braket(), to_pyquil(), to_qiskit()
-backends = [
-  "pytket-cirq==0.40.0",
-  # pytket-pyquil requires Python <=3.12: its transitive dep quil==0.17.0 uses
-  # pyo3==0.20.x whose maximum supported Python is 3.12.
-  "pytket-pyquil==0.40.0; python_version < '3.13'",
-  "pytket-qiskit==0.77.0",
-  "pytket-pennylane==0.20.0",
-  "pytket-braket==0.43.0",
-  "pytket-qir==0.24.1",
 ]
 dev = ["pylint>=3.2.0", "pytest>=8.3.0"]
 

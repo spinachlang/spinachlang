@@ -889,7 +889,7 @@ class Backend:
         except ImportError as exc:
             raise ImportError(
                 "Cirq output requires pytket-cirq. "
-                "Install it with: pip install 'spinachlang[backends]'"
+                "Install it with: pip install spinachlang"
             ) from exc
         cirq_circ = tk_to_cirq(circuit)
         return f"import cirq\n\ncircuit = {repr(cirq_circ)}\nprint(circuit)"
@@ -902,7 +902,7 @@ class Backend:
         except ImportError as exc:
             raise ImportError(
                 "Quil output requires pytket-pyquil. "
-                "Install it with: pip install 'spinachlang[backends]'"
+                "Install it with: pip install spinachlang"
             ) from exc
         pyquil_prog = tk_to_pyquil(circuit)
         return pyquil_prog.out()
@@ -938,7 +938,7 @@ class Backend:
         except ImportError as exc:
             raise ImportError(
                 "QIR output requires pytket-qir. "
-                "Install it with: pip install 'spinachlang[backends]'"
+                "Install it with: pip install spinachlang"
             ) from exc
         result = pytket_to_qir(circuit, name="spinach_circuit", qir_format=QIRFormat.STRING)
         if result is None:
@@ -961,7 +961,7 @@ class Backend:
         except ImportError as exc:
             raise ImportError(
                 "Braket output requires pytket-braket. "
-                "Install it with: pip install 'spinachlang[backends]'"
+                "Install it with: pip install spinachlang"
             ) from exc
         braket_circuit = tk_to_braket(circuit)[0]
         return braket_circuit.to_ir(IRType.OPENQASM).source

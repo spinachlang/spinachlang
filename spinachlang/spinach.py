@@ -65,7 +65,7 @@ class Spinach:
         The returned object is a native cirq.Circuit, ready for simulation
         with cirq.Simulator() or cirq.DensityMatrixSimulator().
 
-        Requires pytket-cirq: pip install 'spinachlang[backends]'
+        Requires pytket-cirq: pip install spinachlang
 
         Example::
 
@@ -81,7 +81,7 @@ class Spinach:
         except ImportError as exc:
             raise ImportError(
                 "cirq objects require pytket-cirq. "
-                "Install it with: pip install 'spinachlang[backends]'"
+                "Install it with: pip install spinachlang"
             ) from exc
         return tk_to_cirq(Spinach.create_circuit(code))
 
@@ -92,7 +92,7 @@ class Spinach:
         The returned object is a native Amazon Braket Circuit, ready to
         submit to any AWS Braket device or LocalSimulator.
 
-        Requires pytket-braket: pip install 'spinachlang[backends]'
+        Requires pytket-braket: pip install spinachlang
 
         Example::
 
@@ -108,7 +108,7 @@ class Spinach:
         except ImportError as exc:
             raise ImportError(
                 "Braket objects require pytket-braket. "
-                "Install it with: pip install 'spinachlang[backends]'"
+                "Install it with: pip install spinachlang"
             ) from exc
         return tk_to_braket(Spinach.create_circuit(code))[0]
 
@@ -119,7 +119,7 @@ class Spinach:
         The returned object is a native PyQuil Program, ready to run on a
         Rigetti QVM or QPU via the PyQuil QC interface.
 
-        Requires pytket-pyquil: pip install 'spinachlang[backends]'
+        Requires pytket-pyquil: pip install spinachlang
 
         Example::
 
@@ -135,7 +135,7 @@ class Spinach:
         except ImportError as exc:
             raise ImportError(
                 "PyQuil objects require pytket-pyquil. "
-                "Install it with: pip install 'spinachlang[backends]'"
+                "Install it with: pip install spinachlang"
             ) from exc
         return tk_to_pyquil(Spinach.create_circuit(code))
 
@@ -146,7 +146,7 @@ class Spinach:
         The returned object is a native Qiskit QuantumCircuit, ready for
         simulation with Qiskit Aer or execution on IBM Quantum hardware.
 
-        Requires pytket-qiskit: pip install 'spinachlang[backends]'
+        Requires pytket-qiskit: pip install spinachlang
 
         Example::
 
@@ -163,6 +163,6 @@ class Spinach:
         except ImportError as exc:
             raise ImportError(
                 "Qiskit objects require pytket-qiskit. "
-                "Install it with: pip install 'spinachlang[backends]'"
+                "Install it with: pip install spinachlang"
             ) from exc
         return tk_to_qiskit(Spinach.create_circuit(code))
