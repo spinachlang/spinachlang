@@ -54,15 +54,14 @@ echo "experimental-features = nix-command flakes" >> ~/.config/nix/nix.conf
 Then install normally:
 
 ```bash
-# 1. Enter the dev shell (sets LD_LIBRARY_PATH for pytket)
+# 1. Enter the dev shell (sets LD_LIBRARY_PATH, auto-creates .venv)
 nix-shell
 
-# 2. Create and activate a virtual environment
-uv venv
+# 2. Activate the virtual environment (created automatically by nix-shell)
 source .venv/bin/activate
 
-# 3. Install the package
-uv pip install .
+# 3. Install the package and all development dependencies
+uv pip install '.[lsp,dev]'
 
 # 4. Verify
 spinachlang --help
