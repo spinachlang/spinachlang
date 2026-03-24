@@ -26,3 +26,37 @@ jobs:
 
       - name: Test with pytest
         run: pytest
+
+      - name: Smoke-test all output backends
+        run: |
+          python - <<'EOF'
+          from spinachlang import Spinach
+
+          code = """
+          q0 : q 0
+          q1 : q 1
+          q0 -> H
+          q0 -> CX(q1)
+          * -> M
+          """
+
+          print("qasm ..."); Spinach.compile(code, "qasm"); print("OK")
+          print("json ..."); Spinach.compile(code, "json"); print("OK")
+          print("cirq ..."); Spinach.compile(code, "cirq"); print("OK")
+          print("quil ..."); Spinach.compile(code, "quil"); print("OK")
+          print("latex ..."); Spinach.compile(code, "latex"); print("OK")
+          print("braket ..."); Spinach.compile(code, "braket"); print("OK")
+
+          meas_code = """
+          q0 : q 0
+          q1 : q 1
+          b0 : b 0
+          b1 : b 1
+          q0 -> H
+          q0 -> CX(q1)
+          q0 -> M(b0)
+          q1 -> M(b1)
+          """
+          print("qir ..."); Spinach.compile(meas_code, "qir"); print("OK")
+          print("All backends OK")
+          EOF

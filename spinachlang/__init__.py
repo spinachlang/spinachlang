@@ -14,7 +14,7 @@ to_braket_circuit(code)  →  braket.circuits.Circuit   (needs pytket-braket)
 to_pyquil_program(code)  →  pyquil.Program            (needs pytket-pyquil)
 to_qiskit_circuit(code)  →  qiskit.QuantumCircuit     (needs pytket-qiskit)
 
-Install optional backends: pip install 'spinachlang[backends]'
+All backends are included by default: pip install spinachlang
 """
 
 from .spinach import Spinach
