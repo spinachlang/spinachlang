@@ -3,10 +3,7 @@ name = "spinachlang"
 version = "0.4.0"
 description = "A quantum programming language and compiler."
 readme = "README.md"
-# Capped at <3.13: pytket-pyquil's transitive dep quil==0.17.0 uses pyo3==0.20.x
-# whose maximum supported Python is 3.12. Re-evaluate this cap when upgrading
-# pytket-pyquil or its quil/pyo3 transitive dependencies.
-requires-python = ">=3.10,<3.13"
+requires-python = ">=3.10"
 license = { text = "MIT" }
 authors = [{ name = "Cedrick Gauthier", email = "spinachlang@proton.me" }]
 
@@ -15,9 +12,6 @@ dependencies = [
   "pytket==2.15.0",
   "pydantic==2.11.7",
   "pytket-cirq==0.40.0",
-  # pytket-pyquil's transitive dep quil==0.17.0 uses pyo3==0.20.x (max Python 3.12).
-  # If upgrading pytket-pyquil, re-check whether the Python cap above can be lifted.
-  "pytket-pyquil==0.40.0",
   "pytket-qiskit==0.77.0",
   "pytket-pennylane==0.20.0",
   "pytket-braket==0.43.0",
@@ -25,6 +19,14 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+# Quil (Rigetti) output — requires Python <=3.12.
+# pytket-pyquil's transitive deps quil==0.17.0 and qcs-sdk-python==0.20.1 are
+# Rust extensions compiled against pyo3==0.20.x whose maximum supported Python
+# is 3.12; they ship no cp313 wheels and their sdist cannot build on 3.13.
+# Install with: uv pip install "spinachlang[pyquil]"   (Python <=3.12 only)
+pyquil = [
+  "pytket-pyquil==0.40.0",
+]
 # Editor / LSP integration — not needed for library or CLI use
 lsp = [
   "pygls==2.0.1",

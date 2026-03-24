@@ -896,13 +896,24 @@ class Backend:
 
     @staticmethod
     def compile_to_quil(circuit: Circuit) -> str:
-        """create a quil code representation of a tket circuit"""
+        """Create a Quil code representation of a tket circuit.
+
+        Requires pytket-pyquil, which is only available on Python <=3.12.
+        Its transitive deps quil==0.17.0 and qcs-sdk-python==0.20.1 are Rust
+        extensions compiled against pyo3==0.20.x (max Python 3.12); they ship
+        no cp313 wheels and their sdist cannot build on Python 3.13+.
+
+        Install with: uv pip install "spinachlang[pyquil]"  (Python <=3.12 only)
+        """
         try:
             from pytket.extensions.pyquil import tk_to_pyquil  # pylint: disable=import-outside-toplevel
         except ImportError as exc:
             raise ImportError(
-                "Quil output requires pytket-pyquil. "
-                "Install it with: pip install spinachlang"
+                "Quil output requires pytket-pyquil (Python <=3.12 only). "
+                'Install it with: pip install "spinachlang[pyquil]"  '
+                "Note: pytket-pyquil's transitive deps quil==0.17.0 and "
+                "qcs-sdk-python==0.20.1 use pyo3==0.20.x which does not "
+                "support Python 3.13+."
             ) from exc
         pyquil_prog = tk_to_pyquil(circuit)
         return pyquil_prog.out()
