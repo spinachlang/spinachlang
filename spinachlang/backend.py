@@ -21,7 +21,7 @@ from .spinach_types import (
 
 
 def _per_target(fn: Callable) -> Callable:
-    """Lift a single-target handler to the uniform multi-target dispatch interface.
+    """Decorator: lift a single-target handler to the uniform multi-target dispatch interface.
 
     Every function stored in a dispatch table must have the same signature:
 
@@ -31,9 +31,9 @@ def _per_target(fn: Callable) -> Callable:
 
         fn(c: Circuit, target, args: list, cond: Optional[dict]) -> None
 
-    _per_target wraps the latter to produce the former, driving the per-element
-    loop here so that handlers never need to think about iteration.
-    Group handlers (BARRIER, MEASURE) are NOT wrapped — they already accept a
+    Applied as ``@_per_target`` (above ``@staticmethod``) on each single-target handler
+    at definition time so that the dispatch table entries need no manual wrapping.
+    Group handlers (BARRIER, MEASURE) are NOT decorated — they already accept a
     list and decide for themselves how to map targets to TKET calls.
     """
     def wrapped(c: Circuit, targets: list, args: list, cond: Optional[dict] = None) -> None:
@@ -50,63 +50,75 @@ class Backend:
 
     # ── Single-target qubit handlers ──────────────────────────────────────
     # Signature: fn(c, target: Qubit, args, cond)
-    # Stored in the dispatch table via _per_target().
+    # Decorated with @_per_target to satisfy the uniform multi-target dispatch interface.
 
+    @_per_target
     @staticmethod
     def __handle_x_gate(c: Circuit, target: Qubit, _: list, cond: Optional[dict] = None):
         """X gate"""
         c.X(target, **(cond or {}))
 
+    @_per_target
     @staticmethod
     def __handle_y_gate(c: Circuit, target: Qubit, _: list, cond: Optional[dict] = None):
         """Y gate"""
         c.Y(target, **(cond or {}))
 
+    @_per_target
     @staticmethod
     def __handle_z_gate(c: Circuit, target: Qubit, _: list, cond: Optional[dict] = None):
         """Z gate"""
         c.Z(target, **(cond or {}))
 
+    @_per_target
     @staticmethod
     def __handle_h_gate(c: Circuit, target: Qubit, _: list, cond: Optional[dict] = None):
         """H gate"""
         c.H(target, **(cond or {}))
 
+    @_per_target
     @staticmethod
     def __handle_s_gate(c: Circuit, target: Qubit, _: list, cond: Optional[dict] = None):
         """S gate"""
         c.S(target, **(cond or {}))
 
+    @_per_target
     @staticmethod
     def __handle_t_gate(c: Circuit, target: Qubit, _: list, cond: Optional[dict] = None):
         """T gate"""
         c.T(target, **(cond or {}))
 
+    @_per_target
     @staticmethod
     def __handle_sdg_gate(c: Circuit, target: Qubit, _: list, cond: Optional[dict] = None):
         """S dagger gate"""
         c.Sdg(target, **(cond or {}))
 
+    @_per_target
     @staticmethod
     def __handle_tdg_gate(c: Circuit, target: Qubit, _: list, cond: Optional[dict] = None):
         """T dagger gate"""
         c.Tdg(target, **(cond or {}))
 
+    @_per_target
     @staticmethod
     def __handle_rx_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
         """RX gate"""
         c.Rx(args[0], target, **(cond or {}))
 
+    @_per_target
     @staticmethod
     def __handle_ry_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
         """RY gate"""
         c.Ry(args[0], target, **(cond or {}))
 
+    @_per_target
     @staticmethod
     def __handle_rz_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
         """RZ gate"""
         c.Rz(args[0], target, **(cond or {}))
 
+    @_per_target
     @staticmethod
     def __handle_cx_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
         """CX gate"""
@@ -114,6 +126,7 @@ class Backend:
         Backend.__ensure_qubit(c, controller)
         c.CX(controller, target, **(cond or {}))
 
+    @_per_target
     @staticmethod
     def __handle_fliped_cx_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
         """FCX gate"""
@@ -121,6 +134,7 @@ class Backend:
         Backend.__ensure_qubit(c, controller)
         c.CX(target, controller, **(cond or {}))
 
+    @_per_target
     @staticmethod
     def __handle_cy_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
         """CY gate"""
@@ -128,6 +142,7 @@ class Backend:
         Backend.__ensure_qubit(c, controller)
         c.CY(controller, target, **(cond or {}))
 
+    @_per_target
     @staticmethod
     def __handle_fliped_cy_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
         """FCY gate"""
@@ -135,6 +150,7 @@ class Backend:
         Backend.__ensure_qubit(c, controller)
         c.CY(target, controller, **(cond or {}))
 
+    @_per_target
     @staticmethod
     def __handle_cz_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
         """CZ gate"""
@@ -142,6 +158,7 @@ class Backend:
         Backend.__ensure_qubit(c, controller)
         c.CZ(controller, target, **(cond or {}))
 
+    @_per_target
     @staticmethod
     def __handle_fliped_cz_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
         """FCZ gate"""
@@ -149,6 +166,7 @@ class Backend:
         Backend.__ensure_qubit(c, controller)
         c.CZ(target, controller, **(cond or {}))
 
+    @_per_target
     @staticmethod
     def __handle_ch_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
         """CH gate"""
@@ -156,6 +174,7 @@ class Backend:
         Backend.__ensure_qubit(c, controller)
         c.CH(controller, target, **(cond or {}))
 
+    @_per_target
     @staticmethod
     def __handle_fliped_ch_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
         """FCH gate"""
@@ -163,6 +182,7 @@ class Backend:
         Backend.__ensure_qubit(c, controller)
         c.CH(target, controller, **(cond or {}))
 
+    @_per_target
     @staticmethod
     def __handle_cu1_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
         """CU1 gate"""
@@ -170,6 +190,7 @@ class Backend:
         Backend.__ensure_qubit(c, controller)
         c.CU1(args[0], controller, target, **(cond or {}))
 
+    @_per_target
     @staticmethod
     def __handle_swap_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
         """SWAP gate"""
@@ -177,6 +198,7 @@ class Backend:
         Backend.__ensure_qubit(c, controller)
         c.SWAP(target, controller, **(cond or {}))
 
+    @_per_target
     @staticmethod
     def __handle_ccx_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
         """CCX gate"""
@@ -186,6 +208,7 @@ class Backend:
         Backend.__ensure_qubit(c, c2)
         c.CCX(c1, c2, target, **(cond or {}))
 
+    @_per_target
     @staticmethod
     def __handle_reset_gate(c: Circuit, target: Qubit, _: list, cond: Optional[dict] = None):
         """Reset gate"""
@@ -193,26 +216,31 @@ class Backend:
 
     # ── New 1-qubit gates ─────────────────────────────────────────────────
 
+    @_per_target
     @staticmethod
     def __handle_sx_gate(c: Circuit, target: Qubit, _: list, cond: Optional[dict] = None):
         """√X gate"""
         c.SX(target, **(cond or {}))
 
+    @_per_target
     @staticmethod
     def __handle_sxdg_gate(c: Circuit, target: Qubit, _: list, cond: Optional[dict] = None):
         """√X† gate"""
         c.SXdg(target, **(cond or {}))
 
+    @_per_target
     @staticmethod
     def __handle_v_gate(c: Circuit, target: Qubit, _: list, cond: Optional[dict] = None):
         """V gate (≡ √X in TKET convention)"""
         c.V(target, **(cond or {}))
 
+    @_per_target
     @staticmethod
     def __handle_vdg_gate(c: Circuit, target: Qubit, _: list, cond: Optional[dict] = None):
         """V† gate"""
         c.Vdg(target, **(cond or {}))
 
+    @_per_target
     @staticmethod
     def __handle_u1_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
         """IBM U1(λ) gate — diagonal single-qubit; 1 angle in half-turns."""
@@ -220,6 +248,7 @@ class Backend:
             raise ValueError("U1 requires exactly 1 angle argument: U1(λ)")
         c.U1(args[0], target, **(cond or {}))
 
+    @_per_target
     @staticmethod
     def __handle_u2_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
         """IBM U2(φ, λ) gate — 2 angles in half-turns."""
@@ -227,6 +256,7 @@ class Backend:
             raise ValueError("U2 requires exactly 2 angle arguments: U2(φ, λ)")
         c.U2(args[0], args[1], target, **(cond or {}))
 
+    @_per_target
     @staticmethod
     def __handle_u3_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
         """IBM U3(θ, φ, λ) gate — full SU(2); 3 angles in half-turns."""
@@ -234,6 +264,7 @@ class Backend:
             raise ValueError("U3 requires exactly 3 angle arguments: U3(θ, φ, λ)")
         c.U3(args[0], args[1], args[2], target, **(cond or {}))
 
+    @_per_target
     @staticmethod
     def __handle_tk1_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
         """TKET TK1(α, β, γ) Euler decomposition; 3 angles in half-turns."""
@@ -241,6 +272,7 @@ class Backend:
             raise ValueError("TK1 requires exactly 3 angle arguments: TK1(α, β, γ)")
         c.TK1(args[0], args[1], args[2], target, **(cond or {}))
 
+    @_per_target
     @staticmethod
     def __handle_phasedx_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
         """PhasedX(exponent, phase) — X rotation around a phase-shifted axis; 2 angles in half-turns."""
@@ -250,6 +282,7 @@ class Backend:
 
     # ── New 2-qubit gates ─────────────────────────────────────────────────
 
+    @_per_target
     @staticmethod
     def __handle_crx_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
         """Controlled-Rx gate: CRX(angle, ctrl) — 1 angle + control qubit."""
@@ -259,6 +292,7 @@ class Backend:
         Backend.__ensure_qubit(c, ctrl)
         c.CRx(args[0], ctrl, target, **(cond or {}))
 
+    @_per_target
     @staticmethod
     def __handle_cry_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
         """Controlled-Ry gate: CRY(angle, ctrl) — 1 angle + control qubit."""
@@ -268,6 +302,7 @@ class Backend:
         Backend.__ensure_qubit(c, ctrl)
         c.CRy(args[0], ctrl, target, **(cond or {}))
 
+    @_per_target
     @staticmethod
     def __handle_crz_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
         """Controlled-Rz gate: CRZ(angle, ctrl) — 1 angle + control qubit."""
@@ -277,6 +312,7 @@ class Backend:
         Backend.__ensure_qubit(c, ctrl)
         c.CRz(args[0], ctrl, target, **(cond or {}))
 
+    @_per_target
     @staticmethod
     def __handle_ecr_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
         """Echoed Cross-Resonance gate: ECR(ctrl)."""
@@ -286,6 +322,7 @@ class Backend:
         Backend.__ensure_qubit(c, ctrl)
         c.ECR(ctrl, target, **(cond or {}))
 
+    @_per_target
     @staticmethod
     def __handle_iswap_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
         """iSWAP gate: ISWAP(angle, other) — angle in half-turns."""
@@ -295,6 +332,7 @@ class Backend:
         Backend.__ensure_qubit(c, other)
         c.ISWAP(args[0], target, other, **(cond or {}))
 
+    @_per_target
     @staticmethod
     def __handle_iswapmax_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
         """Maximal iSWAP gate (≡ ISWAP(1)): ISWAPMAX(other)."""
@@ -304,6 +342,7 @@ class Backend:
         Backend.__ensure_qubit(c, other)
         c.ISWAPMax(target, other, **(cond or {}))
 
+    @_per_target
     @staticmethod
     def __handle_zzmax_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
         """ZZMax gate (≡ ZZPhase(½)): ZZMAX(other)."""
@@ -313,6 +352,7 @@ class Backend:
         Backend.__ensure_qubit(c, other)
         c.ZZMax(target, other, **(cond or {}))
 
+    @_per_target
     @staticmethod
     def __handle_zzphase_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
         """ZZPhase(angle, other) — e^{-i·angle·π/2 ZZ}; angle in half-turns."""
@@ -322,6 +362,7 @@ class Backend:
         Backend.__ensure_qubit(c, other)
         c.ZZPhase(args[0], target, other, **(cond or {}))
 
+    @_per_target
     @staticmethod
     def __handle_xxphase_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
         """XXPhase(angle, other) — e^{-i·angle·π/2 XX}; angle in half-turns."""
@@ -331,6 +372,7 @@ class Backend:
         Backend.__ensure_qubit(c, other)
         c.XXPhase(args[0], target, other, **(cond or {}))
 
+    @_per_target
     @staticmethod
     def __handle_yyphase_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
         """YYPhase(angle, other) — e^{-i·angle·π/2 YY}; angle in half-turns."""
@@ -340,6 +382,7 @@ class Backend:
         Backend.__ensure_qubit(c, other)
         c.YYPhase(args[0], target, other, **(cond or {}))
 
+    @_per_target
     @staticmethod
     def __handle_fsim_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
         """Fermionic Simulation gate: FSIM(θ, φ, other) — 2 angles + partner qubit."""
@@ -349,6 +392,7 @@ class Backend:
         Backend.__ensure_qubit(c, other)
         c.FSim(args[0], args[1], target, other, **(cond or {}))
 
+    @_per_target
     @staticmethod
     def __handle_tk2_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
         """TKET TK2(a, b, c, other) — canonical 2-qubit interaction; 3 angles + partner qubit."""
@@ -358,6 +402,7 @@ class Backend:
         Backend.__ensure_qubit(c, other)
         c.TK2(args[0], args[1], args[2], target, other, **(cond or {}))
 
+    @_per_target
     @staticmethod
     def __handle_phiswap_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
         """PhasedISWAP gate: PHISWAP(p, t, other) — 2 angles + partner qubit."""
@@ -369,6 +414,7 @@ class Backend:
 
     # ── New 3-qubit gates ─────────────────────────────────────────────────
 
+    @_per_target
     @staticmethod
     def __handle_cswap_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
         """CSWAP / Fredkin gate: CSWAP(ctrl, other) — swaps target↔other when ctrl=|1⟩."""
@@ -380,6 +426,7 @@ class Backend:
         Backend.__ensure_qubit(c, other)
         c.CSWAP(ctrl, target, other, **(cond or {}))
 
+    @_per_target
     @staticmethod
     def __handle_xxphase3_gate(c: Circuit, target: Qubit, args: list, cond: Optional[dict] = None):
         """3-qubit XXPhase3(angle, q1, q2) — simultaneous XX interactions on all pairs."""
@@ -501,6 +548,7 @@ class Backend:
 
         list(map(_measure_qubit, qubit_targets))
 
+    @_per_target
     @staticmethod
     def __handle_not_bit(c: Circuit, target: Bit, args: list, _cond: Optional[dict] = None):
         """Classical NOT: target = NOT source  (source defaults to target for in-place)"""
@@ -513,6 +561,7 @@ class Backend:
         Backend.__ensure_bit(c, target)
         c.add_c_not(src, target)
 
+    @_per_target
     @staticmethod
     def __handle_set_bit(c: Circuit, target: Bit, args: list, _cond: Optional[dict] = None):
         """Classical SET: target = 0 or 1"""
@@ -523,6 +572,7 @@ class Backend:
         Backend.__ensure_bit(c, target)
         c.add_c_setbits([bool(args[0])], [target])
 
+    @_per_target
     @staticmethod
     def __handle_and_bit(c: Circuit, target: Bit, args: list, _cond: Optional[dict] = None):
         """Classical AND: target = args[0] AND args[1]"""
@@ -532,6 +582,7 @@ class Backend:
         list(map(lambda b: Backend.__ensure_bit(c, b), [b0, b1, target]))
         c.add_c_and(b0, b1, target)
 
+    @_per_target
     @staticmethod
     def __handle_or_bit(c: Circuit, target: Bit, args: list, _cond: Optional[dict] = None):
         """Classical OR: target = args[0] OR args[1]"""
@@ -541,6 +592,7 @@ class Backend:
         list(map(lambda b: Backend.__ensure_bit(c, b), [b0, b1, target]))
         c.add_c_or(b0, b1, target)
 
+    @_per_target
     @staticmethod
     def __handle_xor_bit(c: Circuit, target: Bit, args: list, _cond: Optional[dict] = None):
         """Classical XOR: target = args[0] XOR args[1]"""
@@ -550,6 +602,7 @@ class Backend:
         list(map(lambda b: Backend.__ensure_bit(c, b), [b0, b1, target]))
         c.add_c_xor(b0, b1, target)
 
+    @_per_target
     @staticmethod
     def __handle_copy_bit(c: Circuit, target: Bit, args: list, _cond: Optional[dict] = None):
         """Classical COPY: target = args[0]"""
@@ -562,72 +615,72 @@ class Backend:
 
     __qubit_dispatch: dict = {
         # ── Single-qubit ──────────────────────────────────────────────
-        "N":        _per_target(__handle_x_gate),
-        "X":        _per_target(__handle_x_gate),
-        "Y":        _per_target(__handle_y_gate),
-        "Z":        _per_target(__handle_z_gate),
-        "H":        _per_target(__handle_h_gate),
-        "S":        _per_target(__handle_s_gate),
-        "ST":       _per_target(__handle_sdg_gate),
-        "TT":       _per_target(__handle_tdg_gate),
-        "T":        _per_target(__handle_t_gate),
-        "RX":       _per_target(__handle_rx_gate),
-        "RY":       _per_target(__handle_ry_gate),
-        "RZ":       _per_target(__handle_rz_gate),
+        "N":        __handle_x_gate,
+        "X":        __handle_x_gate,
+        "Y":        __handle_y_gate,
+        "Z":        __handle_z_gate,
+        "H":        __handle_h_gate,
+        "S":        __handle_s_gate,
+        "ST":       __handle_sdg_gate,
+        "TT":       __handle_tdg_gate,
+        "T":        __handle_t_gate,
+        "RX":       __handle_rx_gate,
+        "RY":       __handle_ry_gate,
+        "RZ":       __handle_rz_gate,
         # √X family
-        "SX":       _per_target(__handle_sx_gate),
-        "SXDG":     _per_target(__handle_sxdg_gate),
-        "V":        _per_target(__handle_v_gate),
-        "VDG":      _per_target(__handle_vdg_gate),
+        "SX":       __handle_sx_gate,
+        "SXDG":     __handle_sxdg_gate,
+        "V":        __handle_v_gate,
+        "VDG":      __handle_vdg_gate,
         # IBM universal gates
-        "U1":       _per_target(__handle_u1_gate),
-        "U2":       _per_target(__handle_u2_gate),
-        "U3":       _per_target(__handle_u3_gate),
+        "U1":       __handle_u1_gate,
+        "U2":       __handle_u2_gate,
+        "U3":       __handle_u3_gate,
         # TKET native
-        "TK1":      _per_target(__handle_tk1_gate),
+        "TK1":      __handle_tk1_gate,
         # Phased gates
-        "PX":       _per_target(__handle_phasedx_gate),
-        "PHASEDX":  _per_target(__handle_phasedx_gate),
+        "PX":       __handle_phasedx_gate,
+        "PHASEDX":  __handle_phasedx_gate,
         # ── Two-qubit ─────────────────────────────────────────────────
-        "CX":       _per_target(__handle_cx_gate),
-        "CNOT":     _per_target(__handle_cx_gate),
-        "FCX":      _per_target(__handle_fliped_cx_gate),
-        "FCNOT":    _per_target(__handle_fliped_cx_gate),
-        "CY":       _per_target(__handle_cy_gate),
-        "FCY":      _per_target(__handle_fliped_cy_gate),
-        "CZ":       _per_target(__handle_cz_gate),
-        "FCZ":      _per_target(__handle_fliped_cz_gate),
-        "CH":       _per_target(__handle_ch_gate),
-        "FCH":      _per_target(__handle_fliped_ch_gate),
-        "CU1":      _per_target(__handle_cu1_gate),
-        "SWAP":     _per_target(__handle_swap_gate),
+        "CX":       __handle_cx_gate,
+        "CNOT":     __handle_cx_gate,
+        "FCX":      __handle_fliped_cx_gate,
+        "FCNOT":    __handle_fliped_cx_gate,
+        "CY":       __handle_cy_gate,
+        "FCY":      __handle_fliped_cy_gate,
+        "CZ":       __handle_cz_gate,
+        "FCZ":      __handle_fliped_cz_gate,
+        "CH":       __handle_ch_gate,
+        "FCH":      __handle_fliped_ch_gate,
+        "CU1":      __handle_cu1_gate,
+        "SWAP":     __handle_swap_gate,
         # Controlled-rotation family
-        "CRX":      _per_target(__handle_crx_gate),
-        "CRY":      _per_target(__handle_cry_gate),
-        "CRZ":      _per_target(__handle_crz_gate),
+        "CRX":      __handle_crx_gate,
+        "CRY":      __handle_cry_gate,
+        "CRZ":      __handle_crz_gate,
         # Cross-resonance
-        "ECR":      _per_target(__handle_ecr_gate),
+        "ECR":      __handle_ecr_gate,
         # iSWAP family
-        "ISWAP":    _per_target(__handle_iswap_gate),
-        "ISWAPMAX": _per_target(__handle_iswapmax_gate),
+        "ISWAP":    __handle_iswap_gate,
+        "ISWAPMAX": __handle_iswapmax_gate,
         # ZZ / XX / YY interaction family
-        "ZZMAX":    _per_target(__handle_zzmax_gate),
-        "ZZPH":     _per_target(__handle_zzphase_gate),
-        "XXPH":     _per_target(__handle_xxphase_gate),
-        "YYPH":     _per_target(__handle_yyphase_gate),
+        "ZZMAX":    __handle_zzmax_gate,
+        "ZZPH":     __handle_zzphase_gate,
+        "XXPH":     __handle_xxphase_gate,
+        "YYPH":     __handle_yyphase_gate,
         # Parametric 2-qubit
-        "FSIM":     _per_target(__handle_fsim_gate),
-        "TK2":      _per_target(__handle_tk2_gate),
-        "PHISWAP":  _per_target(__handle_phiswap_gate),
+        "FSIM":     __handle_fsim_gate,
+        "TK2":      __handle_tk2_gate,
+        "PHISWAP":  __handle_phiswap_gate,
         # ── Three-qubit ───────────────────────────────────────────────
-        "CCX":      _per_target(__handle_ccx_gate),
-        "TOFFOLI":  _per_target(__handle_ccx_gate),
-        "CSWAP":    _per_target(__handle_cswap_gate),
-        "FREDKIN":  _per_target(__handle_cswap_gate),
-        "XXP3":     _per_target(__handle_xxphase3_gate),
+        "CCX":      __handle_ccx_gate,
+        "TOFFOLI":  __handle_ccx_gate,
+        "CSWAP":    __handle_cswap_gate,
+        "FREDKIN":  __handle_cswap_gate,
+        "XXP3":     __handle_xxphase3_gate,
         # ── Lifecycle ─────────────────────────────────────────────────
-        "R":        _per_target(__handle_reset_gate),
-        "RESET":    _per_target(__handle_reset_gate),
+        "R":        __handle_reset_gate,
+        "RESET":    __handle_reset_gate,
         # ── Group (already list-based, no _per_target wrapping) ───────
         "M":        __handle_measure_group,
         "MEASURE":  __handle_measure_group,
@@ -637,12 +690,12 @@ class Backend:
     }
 
     __bit_dispatch: dict = {
-        "NOT":  _per_target(__handle_not_bit),
-        "SET":  _per_target(__handle_set_bit),
-        "AND":  _per_target(__handle_and_bit),
-        "OR":   _per_target(__handle_or_bit),
-        "XOR":  _per_target(__handle_xor_bit),
-        "COPY": _per_target(__handle_copy_bit),
+        "NOT":  __handle_not_bit,
+        "SET":  __handle_set_bit,
+        "AND":  __handle_and_bit,
+        "OR":   __handle_or_bit,
+        "XOR":  __handle_xor_bit,
+        "COPY": __handle_copy_bit,
     }
 
     # ── Circuit utilities ──────────────────────────────────────────────────
