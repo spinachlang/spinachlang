@@ -1,0 +1,17 @@
+# ── SpinachLang ──────────────────────────────────────────────────────────────
+# Core compiler + all backends (includes pytket-qiskit, pytket-cirq, etc.)
+spinachlang>=0.4.1
+
+# ── IBM Quantum Simulator (Aer) ───────────────────────────────────────────────
+# qiskit-aer is NOT installed automatically by pytket-qiskit; add it explicitly.
+# 0.14.x is the stable series compatible with qiskit >= 1.0.
+qiskit-aer>=0.14.0
+
+# ── Visualization ─────────────────────────────────────────────────────────────
+matplotlib>=3.8.0
+pylatexenc>=2.10       # required for circuit.draw('mpl') math rendering
+
+# ── Jupyter ───────────────────────────────────────────────────────────────────
+jupyterlab>=4.2.0
+ipykernel>=6.29.0
+
