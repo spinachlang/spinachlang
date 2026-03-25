@@ -2,18 +2,40 @@
     "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
     "name": "Spinachlang",
     "scopeName": "source.spinachlang",
-    "fileTypes": ["sph"],
+    "fileTypes": [
+        "sph"
+    ],
     "patterns": [
-        { "include": "#comments" },
-        { "include": "#operators" },
-        { "include": "#all_qubit" },
-        { "include": "#keywords" },
-        { "include": "#gate_call" },
-        { "include": "#gate_names" },
-        { "include": "#storage_types" },
-        { "include": "#numbers" },
-        { "include": "#identifiers" },
-        { "include": "#punctuation" }
+        {
+            "include": "#comments"
+        },
+        {
+            "include": "#operators"
+        },
+        {
+            "include": "#all_qubit"
+        },
+        {
+            "include": "#keywords"
+        },
+        {
+            "include": "#gate_call"
+        },
+        {
+            "include": "#gate_names"
+        },
+        {
+            "include": "#storage_types"
+        },
+        {
+            "include": "#numbers"
+        },
+        {
+            "include": "#identifiers"
+        },
+        {
+            "include": "#punctuation"
+        }
     ],
     "repository": {
         "comments": {
@@ -24,7 +46,11 @@
             "patterns": [
                 {
                     "name": "keyword.control.spinachlang",
-                    "match": "\\b(if|else)\\b"
+                    "match": "\\bif\\b"
+                },
+                {
+                    "name": "keyword.control.spinachlang",
+                    "match": "\\belse\\b"
                 }
             ]
         },
@@ -33,11 +59,11 @@
             "patterns": [
                 {
                     "name": "storage.type.qubit.spinachlang",
-                    "match": "(?<=:\\s{0,10})q(?=\\s)"
+                    "match": "\\bq\\b"
                 },
                 {
                     "name": "storage.type.bit.spinachlang",
-                    "match": "(?<=:\\s{0,10})b(?=\\s)"
+                    "match": "\\bb\\b"
                 },
                 {
                     "name": "storage.type.qubit.spinachlang",
@@ -47,15 +73,19 @@
         },
         "all_qubit": {
             "name": "constant.language.all-qubits.spinachlang",
-            "match": "(?<![A-Za-z0-9_])\\*(?!\\s*>)"
+            "match": "\\*"
         },
         "gate_call": {
             "comment": "Gate call with arguments: GATE(args)",
             "name": "meta.function-call.spinachlang",
             "match": "\\b([A-Z][A-Z0-9]*)\\s*(\\()",
             "captures": {
-                "1": { "name": "entity.name.function.gate.spinachlang" },
-                "2": { "name": "punctuation.section.arguments.begin.spinachlang" }
+                "1": {
+                    "name": "entity.name.function.gate.spinachlang"
+                },
+                "2": {
+                    "name": "punctuation.section.arguments.begin.spinachlang"
+                }
             }
         },
         "gate_names": {
@@ -113,4 +143,3 @@
         }
     }
 }
-
